@@ -3,8 +3,8 @@ package main
 //########################## IMPORT ############################
 
 import (
-//	"bufio"
-//	"os"
+	//"bufio"
+	//"os"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -119,7 +119,14 @@ func separateSet(s *Stimuli, perc float64) Stimuli {
 	for i, v := range perm {
 		datasetCopy[v] = s.training[i]
 	}
-	var i, k, split int = 0, 1, int(float64(len(s.training)) * perc)
+	i := 0
+	// for test purpose
+	// for i < len(s.training) {
+	// 	datasetCopy[i] = s.training[i]
+	// 	i++
+	// }
+	// i = 0
+	var k, split int = 0, int(float64(len(s.training)) * perc)
 	for i < split {
 		dataset.training = append(dataset.training, datasetCopy[i])
 		i++
@@ -174,45 +181,65 @@ func randomPerceptronInit(p *Perceptron) {
 }
 
 // update weights in perceptron
-func updateWeights(p *Perceptron, s *Stimulus) {
+func updateWeights(p *Perceptron, s *Stimulus) float64 {
+	// if false {
+	// 	fmt.Println("row")
+	// 	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	// 	fmt.Println(s.dimensions)
+	// }
 	// dummies
 	var i int = 0
 	// activation and error
 	var v, e float64 = predict(p, s), 0.0
-	v = predict(p, s)
 	e = s.expected - v
 	// bias updating
-	p.bias = p.bias + p.lrate*e
+	p.bias = p.bias + p.lrate * e
 	// weights updating
 	for i < len(p.weights) {
-		p.weights[i] = p.weights[i] + s.dimensions[i]*p.lrate*e
+		p.weights[i] = p.weights[i] + p.lrate * e * s.dimensions[i]
 		i++
 	}
+	// if false {
+	// 	fmt.Println("weights")
+	// 	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	// 	fmt.Println(p.weights)
+	// }
+	return e
 }
 
 // perceptron training
 func trainingPerceptron(p *Perceptron, s *Stimuli, epochs int) {
+	p.weights = make([]float64, len(s.training[0].dimensions))
+	p.bias  = 0.0
+
 	// init counter
 	var epoch, stmindex int = 0, 0
 	// for #epoch times
+	var sumerror float64 = 0.0
 	for epoch < epochs {
 		// var prev int = stimuliCorrectlyClassified(p, s)
 		for stmindex < len(s.training) {
-			updateWeights(p, &s.training[stmindex])
+			e := updateWeights(p, &s.training[stmindex])
+			sumerror = sumerror + (e*e)
 			stmindex++
 		}
+		//fmt.Printf(">epoch: %d, lrate: %.3f, error: %.3f\n", epoch, p.lrate, sumerror)
 		// var post int = stimuliCorrectlyClassified(p, s)
 		// fmt.Println(epoch, prev, post)
 		// bufio.NewReader(os.Stdin).ReadBytes('\n')
 		stmindex = 0
 		epoch++
 	}
+	//fmt.Printf("---------------------\n%v\n---------------------\n", s.training[0])
+	//fmt.Printf("---------------------\n%v\n---------------------\n", p.weights)
+	//fmt.Printf("---------------------\n%v\n---------------------\n", s.testing[0])
+	//bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
 
 // compute perceptron activation
 func predict(p *Perceptron, s *Stimulus) float64 {
-	if scalarProduct(p.weights, s.dimensions)+p.bias <= 0.0 {
-		return -1.0
+	if scalarProduct(p.weights, s.dimensions) + p.bias < 0.0 {
+		return 0.0
 	}
 	return 1.0
 }
@@ -281,16 +308,18 @@ func main() {
 
 	// Stimuli initialization
 	var stimuli Stimuli = loadCSVFile("sonar.all_data.csv")
-	fmt.Printf("\nstart rotation...\n\n")
+	fmt.Printf("start  rotation...\n")
 	// Perceptron initialization
 	var perceptron Perceptron = Perceptron{weights: make([]float64, len(stimuli.training[0].dimensions))}
-	randomPerceptronInit(&perceptron)
-	perceptron.lrate = 0.02
-	perctraintest := 0.8
+	//randomPerceptronInit(&perceptron)
+	perceptron.weights = make([]float64, len(stimuli.training[0].dimensions))
+	perceptron.bias  = 0.0
+	perceptron.lrate = 0.01
+	perctraintest := 0.67
 	epochs := 500
-	folds := 8
+	folds := 3
 
-	fmt.Printf("\nend   rotation...\n\n")
+	fmt.Printf("ending rotation...\n")
 	fmt.Printf("\nscores reached: %2.4v\n", 
 		evaluateAlgorithm(&perceptron, &stimuli, perctraintest, epochs, folds))
 
