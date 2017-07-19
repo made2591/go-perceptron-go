@@ -3,14 +3,14 @@ package main
 //########################## IMPORT ############################
 
 import (
-	//"bufio"
+//	"bufio"
+//	"os"
 	"encoding/csv"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
-	//"os"
 	"strconv"
 	"strings"
 )
@@ -112,22 +112,25 @@ func loadCSVFile(path string) Stimuli {
 }
 
 // separate training set in training and testing
-func separateSet(s *Stimuli, perc float64) {
+func separateSet(s *Stimuli, perc float64) Stimuli {
+	var dataset Stimuli = Stimuli{}
 	var datasetCopy []Stimulus = make([]Stimulus, len(s.training))
 	perm := rand.Perm(len(s.training))
 	for i, v := range perm {
 		datasetCopy[v] = s.training[i]
 	}
 	var i, k, split int = 0, 1, int(float64(len(s.training)) * perc)
-	s.training = []Stimulus{}
 	for i < split {
-		s.training = append(s.training, datasetCopy[i])
+		dataset.training = append(dataset.training, datasetCopy[i])
 		i++
 	}
 	for k < len(datasetCopy)-split {
-		s.testing = append(s.testing, datasetCopy[i+k])
+		dataset.testing = append(dataset.testing, datasetCopy[i+k])
 		k++
 	}
+	//fmt.Println(len(dataset.training), len(dataset.testing))
+	//bufio.NewReader(os.Stdin).ReadBytes('\n')
+	return dataset
 }
 
 // calculate accuracy percentage
@@ -253,19 +256,23 @@ func check(e error) {
 }
 
 // evaluate algorithm
-func evaluateAlgorithm(p *Perceptron, s *Stimuli, perc float64, epochs int) []float64 {
+func evaluateAlgorithm(p *Perceptron, s *Stimuli, perc float64, epochs int, folds int) []float64 {
 	var scores []float64
-	separateSet(s, perc)
-	fmt.Println(len(s.training), len(s.testing))
-	var predicted []float64 = perceptron(p, s, epochs)
-	var actual []float64
-	var i int = 0
-	for i < len(s.testing) {
-		actual = append(actual, s.testing[i].expected)
-		i++
+	for {
+		var ssep Stimuli = separateSet(s, perc)
+		fmt.Printf("fold: %d, trains: %d, tests: %d\n", len(scores), len(ssep.training), len(ssep.testing))
+		var predicted []float64 = perceptron(p, &ssep, epochs)
+		var actual []float64
+		var i int = 0
+		for i < len(ssep.testing) {
+			actual = append(actual, ssep.testing[i].expected)
+			i++
+		}
+		scores = append(scores, accuracy(actual, predicted))
+		if len(scores) == folds {
+			return scores
+		}
 	}
-	scores = append(scores, accuracy(actual, predicted))
-	return scores
 }
 
 //############################ MAIN ############################
@@ -274,10 +281,17 @@ func main() {
 
 	// Stimuli initialization
 	var stimuli Stimuli = loadCSVFile("sonar.all_data.csv")
+	fmt.Printf("\nstart rotation...\n\n")
 	// Perceptron initialization
 	var perceptron Perceptron = Perceptron{weights: make([]float64, len(stimuli.training[0].dimensions))}
 	randomPerceptronInit(&perceptron)
-	perceptron.lrate = 0.01
-	fmt.Printf("%v\n", evaluateAlgorithm(&perceptron, &stimuli, 0.9, 500))
+	perceptron.lrate = 0.02
+	perctraintest := 0.8
+	epochs := 500
+	folds := 8
+
+	fmt.Printf("\nend   rotation...\n\n")
+	fmt.Printf("\nscores reached: %2.4v\n", 
+		evaluateAlgorithm(&perceptron, &stimuli, perctraintest, epochs, folds))
 
 }
