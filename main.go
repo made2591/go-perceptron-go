@@ -4,18 +4,26 @@ package main
 
 import (
 	//"bufio"
-	//"os"
 	"encoding/csv"
 	"fmt"
+	mu "github.com/made2591/go-perceptron-go/util"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
-	"log"
 	"math/rand"
-	"strconv"
+	"os"
+	//"strconv"
 	"strings"
 )
 
-//########################## STRUCTS ###########################
+//########################## METHODS ###########################
+
+// Perceptron struct represents a simple Perceptron network with a slice of n weights
+type Perceptron struct {
+	bias    float64
+	weights []float64
+	lrate   float64
+}
 
 // Stimuli struct represents a stimuli training and testing set
 type Stimuli struct {
@@ -30,42 +38,45 @@ type Stimulus struct {
 	expected    float64
 }
 
-// Perceptron struct represents a simple Perceptron network with a slice of n weights
-type Perceptron struct {
-	bias    float64
-	weights []float64
-	lrate   float64
-}
+// // search string in slice
+// func stringInSlice(a string, list []string) bool {
+// 	for _, b := range list {
+// 		if b == a {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
-//########################## METHODS ###########################
-
-// search string in slice
-func stringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
-// string slice to float slice cast
-func stringToFloat(strrecord []string) []float64 {
-	var fltrecord []float64
-	for _, strval := range strrecord {
-		if fltval, err := strconv.ParseFloat(strval, 64); err == nil {
-			fltrecord = append(fltrecord, fltval)
-		}
-	}
-	return fltrecord
-}
+// // string slice to float slice cast
+// func stringToFloat(strrecord []string) []float64 {
+// 	var fltrecord []float64
+// 	if len(strrecord) == 0 {
+// 		log.WithFields(log.Fields{
+// 			"event": "empty_parameter",
+// 			"topic": "util_function",
+// 			"key":   "stringToFloat",
+// 		}).Info("empty slice of string")
+// 	}
+// 	for _, strval := range strrecord {
+// 		if fltval, err := strconv.ParseFloat(strval, 64); err == nil {
+// 			fltrecord = append(fltrecord, fltval)
+// 		}
+// 	}
+// 	log.WithFields(log.Fields{
+// 		"event": "result_info",
+// 		"topic": "stringToFloat",
+// 		"key":   len(fltrecord),
+// 	}).Info("fltrecord length")
+// 	return fltrecord
+// }
 
 // string slice to float slice cast
 func rawExpectedConversion(stimuli *Stimuli) {
 	// expected string values
 	var rawexpected []string
 	for _, stimulus := range stimuli.training {
-		if !stringInSlice(stimulus.rawexpected, rawexpected) {
+		if !mu.StringInSlice(stimulus.rawexpected, rawexpected) {
 			rawexpected = append(rawexpected, stimulus.rawexpected)
 		}
 	}
@@ -100,7 +111,7 @@ func loadCSVFile(path string) Stimuli {
 			log.Fatal(error)
 		}
 		// conversion
-		var fltrecord []float64 = stringToFloat(record)
+		var fltrecord []float64 = mu.StringToFloat(record)
 		// add record to training set
 		stimuli.training = append(
 			stimuli.training,
@@ -193,10 +204,10 @@ func updateWeights(p *Perceptron, s *Stimulus) float64 {
 	var v, e float64 = predict(p, s), 0.0
 	e = s.expected - v
 	// bias updating
-	p.bias = p.bias + p.lrate * e
+	p.bias = p.bias + p.lrate*e
 	// weights updating
 	for i < len(p.weights) {
-		p.weights[i] = p.weights[i] + p.lrate * e * s.dimensions[i]
+		p.weights[i] = p.weights[i] + p.lrate*e*s.dimensions[i]
 		i++
 	}
 	// if false {
@@ -210,7 +221,7 @@ func updateWeights(p *Perceptron, s *Stimulus) float64 {
 // perceptron training
 func trainingPerceptron(p *Perceptron, s *Stimuli, epochs int) {
 	p.weights = make([]float64, len(s.training[0].dimensions))
-	p.bias  = 0.0
+	p.bias = 0.0
 
 	// init counter
 	var epoch, stmindex int = 0, 0
@@ -220,7 +231,7 @@ func trainingPerceptron(p *Perceptron, s *Stimuli, epochs int) {
 		// var prev int = stimuliCorrectlyClassified(p, s)
 		for stmindex < len(s.training) {
 			e := updateWeights(p, &s.training[stmindex])
-			sumerror = sumerror + (e*e)
+			sumerror = sumerror + (e * e)
 			stmindex++
 		}
 		//fmt.Printf(">epoch: %d, lrate: %.3f, error: %.3f\n", epoch, p.lrate, sumerror)
@@ -238,7 +249,7 @@ func trainingPerceptron(p *Perceptron, s *Stimuli, epochs int) {
 
 // compute perceptron activation
 func predict(p *Perceptron, s *Stimulus) float64 {
-	if scalarProduct(p.weights, s.dimensions) + p.bias < 0.0 {
+	if scalarProduct(p.weights, s.dimensions)+p.bias < 0.0 {
 		return 0.0
 	}
 	return 1.0
@@ -304,6 +315,18 @@ func evaluateAlgorithm(p *Perceptron, s *Stimuli, perc float64, epochs int, fold
 
 //############################ MAIN ############################
 
+func init() {
+	// Log as JSON instead of the default ASCII formatter.
+	log.SetFormatter(&log.JSONFormatter{})
+
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	log.SetOutput(os.Stdout)
+
+	// Only log the warning severity or above.
+	log.SetLevel(log.DebugLevel)
+}
+
 func main() {
 
 	// Stimuli initialization
@@ -313,14 +336,14 @@ func main() {
 	var perceptron Perceptron = Perceptron{weights: make([]float64, len(stimuli.training[0].dimensions))}
 	//randomPerceptronInit(&perceptron)
 	perceptron.weights = make([]float64, len(stimuli.training[0].dimensions))
-	perceptron.bias  = 0.0
+	perceptron.bias = 0.0
 	perceptron.lrate = 0.01
 	perctraintest := 0.67
 	epochs := 500
 	folds := 3
 
 	fmt.Printf("ending rotation...\n")
-	fmt.Printf("\nscores reached: %2.4v\n", 
+	fmt.Printf("\nscores reached: %2.4v\n",
 		evaluateAlgorithm(&perceptron, &stimuli, perctraintest, epochs, folds))
 
 }
