@@ -1,8 +1,8 @@
 package neural
 
-// Perceptron struct represents a simple Perceptron network with a slice of n weights
+// Perceptron struct represents a simple mn.mn.Perceptron network with a slice of n weights
 type Perceptron struct {
-	bias    float64
-	weights []float64
-	lrate   float64
+	Bias    float64
+	Weights []float64
+	Lrate   float64
 }

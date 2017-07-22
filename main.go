@@ -6,7 +6,8 @@ import (
 	//"bufio"
 	"encoding/csv"
 	"fmt"
-	"github.com/made2591/go-perceptron-go/model"
+	m "github.com/made2591/go-perceptron-go/model"
+	mn "github.com/made2591/go-perceptron-go/model/neural"
 	mu "github.com/made2591/go-perceptron-go/util"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -20,21 +21,21 @@ import (
 //########################## METHODS ###########################
 
 // string slice to float slice cast
-func rawExpectedConversion(stimuli *Stimuli) {
+func rawExpectedConversion(stimuli *m.Stimuli) {
 	// expected string values
 	var rawexpected []string
-	for _, stimulus := range stimuli.training {
-		if !mu.StringInSlice(stimulus.rawexpected, rawexpected) {
-			rawexpected = append(rawexpected, stimulus.rawexpected)
+	for _, stimulus := range stimuli.Training {
+		if !mu.StringInSlice(stimulus.Rawexpected, rawexpected) {
+			rawexpected = append(rawexpected, stimulus.Rawexpected)
 		}
 	}
 	// expected string values
 	var stmindex int = 0
-	for stmindex < len(stimuli.training) {
+	for stmindex < len(stimuli.Training) {
 		for intvalue, strvalue := range rawexpected {
-			if strings.Compare(strvalue, stimuli.training[stmindex].rawexpected) == 0 {
+			if strings.Compare(strvalue, stimuli.Training[stmindex].Rawexpected) == 0 {
 				// conversion to float64 value
-				stimuli.training[stmindex].expected = float64(intvalue)
+				stimuli.Training[stmindex].Expected = float64(intvalue)
 			}
 		}
 		stmindex++
@@ -42,13 +43,13 @@ func rawExpectedConversion(stimuli *Stimuli) {
 }
 
 // load csv dataset file
-func loadCSVFile(path string) Stimuli {
+func loadCSVFile(path string) m.Stimuli {
 	// read content, check error
 	content, error := ioutil.ReadFile(path)
 	check(error)
 	pointer := csv.NewReader(strings.NewReader(string(content)))
 	// init stimuli set
-	var stimuli Stimuli = Stimuli{training: []Stimulus{}, testing: []Stimulus{}}
+	var stimuli m.Stimuli = m.Stimuli{Training: []m.Stimulus{}, Testing: []m.Stimulus{}}
 	// read record in file
 	for {
 		record, error := pointer.Read()
@@ -61,9 +62,9 @@ func loadCSVFile(path string) Stimuli {
 		// conversion
 		var fltrecord []float64 = mu.StringToFloat(record)
 		// add record to training set
-		stimuli.training = append(
-			stimuli.training,
-			Stimulus{dimensions: fltrecord, rawexpected: record[len(record)-1]})
+		stimuli.Training = append(
+			stimuli.Training,
+			m.Stimulus{Dimensions: fltrecord, Rawexpected: record[len(record)-1]})
 	}
 	// cast expected value to numeric
 	rawExpectedConversion(&stimuli)
@@ -71,30 +72,30 @@ func loadCSVFile(path string) Stimuli {
 }
 
 // separate training set in training and testing
-func separateSet(s *Stimuli, perc float64) Stimuli {
-	var dataset Stimuli = Stimuli{}
-	var datasetCopy []Stimulus = make([]Stimulus, len(s.training))
-	perm := rand.Perm(len(s.training))
+func separateSet(s *m.Stimuli, perc float64) m.Stimuli {
+	var dataset m.Stimuli = m.Stimuli{}
+	var datasetCopy []m.Stimulus = make([]m.Stimulus, len(s.Training))
+	perm := rand.Perm(len(s.Training))
 	for i, v := range perm {
-		datasetCopy[v] = s.training[i]
+		datasetCopy[v] = s.Training[i]
 	}
 	i := 0
 	// for test purpose
-	// for i < len(s.training) {
-	// 	datasetCopy[i] = s.training[i]
+	// for i < len(s.Training) {
+	// 	datasetCopy[i] = s.Training[i]
 	// 	i++
 	// }
 	// i = 0
-	var k, split int = 0, int(float64(len(s.training)) * perc)
+	var k, split int = 0, int(float64(len(s.Training)) * perc)
 	for i < split {
-		dataset.training = append(dataset.training, datasetCopy[i])
+		dataset.Training = append(dataset.Training, datasetCopy[i])
 		i++
 	}
 	for k < len(datasetCopy)-split {
-		dataset.testing = append(dataset.testing, datasetCopy[i+k])
+		dataset.Testing = append(dataset.Testing, datasetCopy[i+k])
 		k++
 	}
-	//fmt.Println(len(dataset.training), len(dataset.testing))
+	//fmt.Println(len(dataset.Training), len(dataset.Testing))
 	//bufio.NewReader(os.Stdin).ReadBytes('\n')
 	return dataset
 }
@@ -127,49 +128,49 @@ func scalarProduct(a []float64, b []float64) float64 {
 }
 
 // initializeWeight get Perceptron pointer
-func randomPerceptronInit(p *Perceptron) {
+func randomPerceptronInit(p *mn.Perceptron) {
 	var i int = 0
-	for i < len(p.weights) {
+	for i < len(p.Weights) {
 		// init random threshold weight
-		p.weights[i] = rand.NormFloat64()
+		p.Weights[i] = rand.NormFloat64()
 		i++
 	}
 	// init random bias weight and lrate
-	p.bias = rand.NormFloat64()
-	p.lrate = rand.NormFloat64() * 0.01
+	p.Bias = rand.NormFloat64()
+	p.Lrate = rand.NormFloat64() * 0.01
 }
 
 // update weights in perceptron
-func updateWeights(p *Perceptron, s *Stimulus) float64 {
+func updateWeights(p *mn.Perceptron, s *m.Stimulus) float64 {
 	// if false {
 	// 	fmt.Println("row")
 	// 	bufio.NewReader(os.Stdin).ReadBytes('\n')
-	// 	fmt.Println(s.dimensions)
+	// 	fmt.Println(s.Dimensions)
 	// }
 	// dummies
 	var i int = 0
 	// activation and error
 	var v, e float64 = predict(p, s), 0.0
-	e = s.expected - v
+	e = s.Expected - v
 	// bias updating
-	p.bias = p.bias + p.lrate*e
+	p.Bias = p.Bias + p.Lrate*e
 	// weights updating
-	for i < len(p.weights) {
-		p.weights[i] = p.weights[i] + p.lrate*e*s.dimensions[i]
+	for i < len(p.Weights) {
+		p.Weights[i] = p.Weights[i] + p.Lrate*e*s.Dimensions[i]
 		i++
 	}
 	// if false {
 	// 	fmt.Println("weights")
 	// 	bufio.NewReader(os.Stdin).ReadBytes('\n')
-	// 	fmt.Println(p.weights)
+	// 	fmt.Println(p.Weights)
 	// }
 	return e
 }
 
 // perceptron training
-func trainingPerceptron(p *Perceptron, s *Stimuli, epochs int) {
-	p.weights = make([]float64, len(s.training[0].dimensions))
-	p.bias = 0.0
+func trainingPerceptron(p *mn.Perceptron, s *m.Stimuli, epochs int) {
+	p.Weights = make([]float64, len(s.Training[0].Dimensions))
+	p.Bias = 0.0
 
 	// init counter
 	var epoch, stmindex int = 0, 0
@@ -177,37 +178,37 @@ func trainingPerceptron(p *Perceptron, s *Stimuli, epochs int) {
 	var sumerror float64 = 0.0
 	for epoch < epochs {
 		// var prev int = stimuliCorrectlyClassified(p, s)
-		for stmindex < len(s.training) {
-			e := updateWeights(p, &s.training[stmindex])
+		for stmindex < len(s.Training) {
+			e := updateWeights(p, &s.Training[stmindex])
 			sumerror = sumerror + (e * e)
 			stmindex++
 		}
-		//fmt.Printf(">epoch: %d, lrate: %.3f, error: %.3f\n", epoch, p.lrate, sumerror)
+		//fmt.Printf(">epoch: %d, lrate: %.3f, error: %.3f\n", epoch, p.Lrate, sumerror)
 		// var post int = stimuliCorrectlyClassified(p, s)
 		// fmt.Println(epoch, prev, post)
 		// bufio.NewReader(os.Stdin).ReadBytes('\n')
 		stmindex = 0
 		epoch++
 	}
-	//fmt.Printf("---------------------\n%v\n---------------------\n", s.training[0])
-	//fmt.Printf("---------------------\n%v\n---------------------\n", p.weights)
-	//fmt.Printf("---------------------\n%v\n---------------------\n", s.testing[0])
+	//fmt.Printf("---------------------\n%v\n---------------------\n", s.Training[0])
+	//fmt.Printf("---------------------\n%v\n---------------------\n", p.Weights)
+	//fmt.Printf("---------------------\n%v\n---------------------\n", s.Testing[0])
 	//bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
 
 // compute perceptron activation
-func predict(p *Perceptron, s *Stimulus) float64 {
-	if scalarProduct(p.weights, s.dimensions)+p.bias < 0.0 {
+func predict(p *mn.Perceptron, s *m.Stimulus) float64 {
+	if scalarProduct(p.Weights, s.Dimensions)+p.Bias < 0.0 {
 		return 0.0
 	}
 	return 1.0
 }
 
 // perceptron
-func perceptron(p *Perceptron, s *Stimuli, epochs int) []float64 {
+func perceptron(p *mn.Perceptron, s *m.Stimuli, epochs int) []float64 {
 	var predictions []float64
 	trainingPerceptron(p, s, epochs)
-	for _, stm := range s.testing {
+	for _, stm := range s.Testing {
 		predictions = append(predictions, predict(p, &stm))
 	}
 	//fmt.Println(predictions)
@@ -215,18 +216,18 @@ func perceptron(p *Perceptron, s *Stimuli, epochs int) []float64 {
 }
 
 // compute perceptron activation
-func isStimulusCorrectlyClassified(p *Perceptron, s *Stimulus) bool {
-	if predict(p, s) == s.expected {
+func isStimulusCorrectlyClassified(p *mn.Perceptron, s *m.Stimulus) bool {
+	if predict(p, s) == s.Expected {
 		return true
 	}
 	return false
 }
 
-// areStimuliCorrectlyClassified get Perceptron pointer, Stimuli pointer and see if Perceptron correctly find solution for all Stimulus inside
-func stimuliCorrectlyClassified(p *Perceptron, s *Stimuli) int {
-	var i, c, l int = 0, 0, len(s.training)
+// areStimuliCorrectlyClassified get mn.Perceptron pointer, m.Stimuli pointer and see if mn.Perceptron correctly find solution for all m.Stimulus inside
+func stimuliCorrectlyClassified(p *mn.Perceptron, s *m.Stimuli) int {
+	var i, c, l int = 0, 0, len(s.Training)
 	for i < l {
-		if isStimulusCorrectlyClassified(p, &s.training[i]) {
+		if isStimulusCorrectlyClassified(p, &s.Training[i]) {
 			c++
 		}
 		i++
@@ -242,16 +243,16 @@ func check(e error) {
 }
 
 // evaluate algorithm
-func evaluateAlgorithm(p *Perceptron, s *Stimuli, perc float64, epochs int, folds int) []float64 {
+func evaluateAlgorithm(p *mn.Perceptron, s *m.Stimuli, perc float64, epochs int, folds int) []float64 {
 	var scores []float64
 	for {
-		var ssep Stimuli = separateSet(s, perc)
-		fmt.Printf("fold: %d, trains: %d, tests: %d\n", len(scores), len(ssep.training), len(ssep.testing))
+		var ssep m.Stimuli = separateSet(s, perc)
+		fmt.Printf("fold: %d, trains: %d, tests: %d\n", len(scores), len(ssep.Training), len(ssep.Testing))
 		var predicted []float64 = perceptron(p, &ssep, epochs)
 		var actual []float64
 		var i int = 0
-		for i < len(ssep.testing) {
-			actual = append(actual, ssep.testing[i].expected)
+		for i < len(ssep.Testing) {
+			actual = append(actual, ssep.Testing[i].Expected)
 			i++
 		}
 		scores = append(scores, accuracy(actual, predicted))
@@ -277,15 +278,15 @@ func init() {
 
 func main() {
 
-	// Stimuli initialization
-	var stimuli Stimuli = loadCSVFile("sonar.all_data.csv")
+	// m.Stimuli initialization
+	var stimuli m.Stimuli = loadCSVFile("sonar.all_data.csv")
 	fmt.Printf("start  rotation...\n")
-	// Perceptron initialization
-	var perceptron Perceptron = Perceptron{weights: make([]float64, len(stimuli.training[0].dimensions))}
+	// mn.Perceptron initialization
+	var perceptron mn.Perceptron = mn.Perceptron{Weights: make([]float64, len(stimuli.Training[0].Dimensions))}
 	//randomPerceptronInit(&perceptron)
-	perceptron.weights = make([]float64, len(stimuli.training[0].dimensions))
-	perceptron.bias = 0.0
-	perceptron.lrate = 0.01
+	perceptron.Weights = make([]float64, len(stimuli.Training[0].Dimensions))
+	perceptron.Bias = 0.0
+	perceptron.Lrate = 0.01
 	perctraintest := 0.67
 	epochs := 500
 	folds := 3

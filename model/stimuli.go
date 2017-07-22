@@ -2,13 +2,13 @@ package model
 
 // Stimuli struct represents a stimuli training and testing set
 type Stimuli struct {
-	training []Stimulus
-	testing  []Stimulus
+	Training []Stimulus
+	Testing  []Stimulus
 }
 
 // Stimulus struct represents one stimulus with dimension and desired value
 type Stimulus struct {
-	dimensions  []float64
-	rawexpected string
-	expected    float64
+	Dimensions  []float64
+	Rawexpected string
+	Expected    float64
 }
