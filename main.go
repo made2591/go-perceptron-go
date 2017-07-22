@@ -6,6 +6,7 @@ import (
 	//"bufio"
 	"encoding/csv"
 	"fmt"
+	"github.com/made2591/go-perceptron-go/model"
 	mu "github.com/made2591/go-perceptron-go/util"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -17,59 +18,6 @@ import (
 )
 
 //########################## METHODS ###########################
-
-// Perceptron struct represents a simple Perceptron network with a slice of n weights
-type Perceptron struct {
-	bias    float64
-	weights []float64
-	lrate   float64
-}
-
-// Stimuli struct represents a stimuli training and testing set
-type Stimuli struct {
-	training []Stimulus
-	testing  []Stimulus
-}
-
-// Stimulus struct represents one stimulus with dimension and desired value
-type Stimulus struct {
-	dimensions  []float64
-	rawexpected string
-	expected    float64
-}
-
-// // search string in slice
-// func stringInSlice(a string, list []string) bool {
-// 	for _, b := range list {
-// 		if b == a {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
-
-// // string slice to float slice cast
-// func stringToFloat(strrecord []string) []float64 {
-// 	var fltrecord []float64
-// 	if len(strrecord) == 0 {
-// 		log.WithFields(log.Fields{
-// 			"event": "empty_parameter",
-// 			"topic": "util_function",
-// 			"key":   "stringToFloat",
-// 		}).Info("empty slice of string")
-// 	}
-// 	for _, strval := range strrecord {
-// 		if fltval, err := strconv.ParseFloat(strval, 64); err == nil {
-// 			fltrecord = append(fltrecord, fltval)
-// 		}
-// 	}
-// 	log.WithFields(log.Fields{
-// 		"event": "result_info",
-// 		"topic": "stringToFloat",
-// 		"key":   len(fltrecord),
-// 	}).Info("fltrecord length")
-// 	return fltrecord
-// }
 
 // string slice to float slice cast
 func rawExpectedConversion(stimuli *Stimuli) {

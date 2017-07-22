@@ -1,11 +1,4 @@
-package perceptron
-
-// Perceptron struct represents a simple Perceptron network with a slice of n weights
-type Perceptron struct {
-	bias    float64
-	weights []float64
-	lrate   float64
-}
+package model
 
 // Stimuli struct represents a stimuli training and testing set
 type Stimuli struct {
