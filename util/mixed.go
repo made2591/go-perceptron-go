@@ -11,38 +11,24 @@ import (
 )
 
 func init() {
-
-	// Log as JSON instead of the default ASCII formatter.
-	// log.SetFormatter(&log.JSONFormatter{})
-
 	// Output to stdout instead of the default stderr
-	// Can be any io.Writer
 	log.SetOutput(os.Stdout)
-
 	// Only log the warning severity or above.
 	log.SetLevel(log.DebugLevel)
-
-	//log.Debug("Useful debugging information.")
-	//log.Info("Something noteworthy happened!")
-	//log.Warn("You should probably take a look at this.")
-	//log.Error("Something failed but I'm not quitting.")
-	//// Calls os.Exit(1) after logging
-	//log.Fatal("Bye.")
-	//// Calls panic() after logging
-	//log.Panic("I'm bailing.")
-
 }
 
 // StringInSlice looks for a string in slice.
 // It returns true or false and position of string in slice (false, -1 if not found).
 func StringInSlice(element string, slice []string) (bool, int) {
 
+	// for element in slice
 	for index, value := range slice {
 		if value == element {
 			return true, index
 		}
 	}
 
+	// return false, placeholder
 	return false, -1
 
 }
@@ -92,14 +78,29 @@ func StringToFloat(slice []string, mode int, def float64) []float64 {
 // ScalarProduct compute scalar product between two float64 based slices.
 // It returns a float64 value.
 func ScalarProduct(a []float64, b []float64) float64 {
+
+	// if slices have different number of elements
 	if len(a) != len(b) {
+		log.WithFields(log.Fields{
+			"level" : "error",
+			"place" : "mixed",
+			"method" : "ScalarProduct",
+			"msg": "scalar product between slices",
+			"aLen" : len(a),
+			"bLen" : len(b),
+		}).Error("Failed to compute scalar product between slices: different length.")
 		return -1.0
 	}
-	var i int = 0
-	var t float64 = 0.0
-	for i < len(a) {
-		t = t + (a[i] * b[i])
-		i = i + 1
+
+	// init result
+	var result float64 = 0.0
+
+	// for each element compute product
+	for index, value := range a {
+		result = result + (value * b[index])
 	}
-	return t
+
+	// return value
+	return result
+
 }

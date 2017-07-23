@@ -18,24 +18,10 @@ import (
 )
 
 func init() {
-	// Log as JSON instead of the default ASCII formatter.
-	// log.SetFormatter(&log.JSONFormatter{})
-
 	// Output to stdout instead of the default stderr
-	// Can be any io.Writer
 	log.SetOutput(os.Stdout)
-
 	// Only log the warning severity or above.
 	log.SetLevel(log.InfoLevel)
-
-	//log.Debug("Useful debugging information.")
-	//log.Info("Something noteworthy happened!")
-	//log.Warn("You should probably take a look at this.")
-	//log.Error("Something failed but I'm not quitting.")
-	//// Calls os.Exit(1) after logging
-	//log.Fatal("Bye.")
-	//// Calls panic() after logging
-	//log.Panic("I'm bailing.")
 }
 
 // Stimuli struct represents a set of stimulus splitted in training and testing set
@@ -68,7 +54,6 @@ type Stimulus struct {
 // If mix is 0, no shuffling will be performed.
 // If 1, pseudo-random shuffling of line will be performed.
 // It returns Stimuli struct splitting record in file with passed percentage.
-
 func LoadStimuliFromCSVFile(filePath string, splitPercentage float64, mix int) (Stimuli, error) {
 
 	// init stimuli set
@@ -76,12 +61,16 @@ func LoadStimuliFromCSVFile(filePath string, splitPercentage float64, mix int) (
 
 	// read content ([]byte), check error (error)
 	fileContent, error := ioutil.ReadFile(filePath)
+
 	if error != nil {
 		log.WithFields(log.Fields{
-			"event": "error",
-			"topic": "reading file in specific path",
-			"key": filePath,
-		}).Fatal("Failed to read file in specified path")
+			"level" : "fatal",
+			"place" : "stimuli",
+			"method" : "LoadStimuliFromCSVFile",
+			"msg" : "reading file in specific path",
+			"filePath" : filePath,
+			"error" : error,
+		}).Fatal("Failed to read file in specified path.")
 		return stimuli, error
 	}
 
@@ -95,23 +84,34 @@ func LoadStimuliFromCSVFile(filePath string, splitPercentage float64, mix int) (
 		// read line, check error
 		line, error := pointer.Read()
 
+		log.WithFields(log.Fields{
+			"level" : "debug",
+			"place" : "stimuli",
+			"method" : "LoadStimuliFromCSVFile",
+			"line" : line,
+		}).Debug()
+
 		// if end of file reached, exit loop
 		if error == io.EOF {
 			log.WithFields(log.Fields{
-				"event": "debug",
-				"topic": "end of file reached",
-				"key": filePath,
-			}).Debug("Reached end of file during reading")
+				"level" : "info",
+				"place" : "stimuli",
+				"method" : "LoadStimuliFromCSVFile",
+				"msg" : "reached end of file during reading",
+			}).Info("Reached end of file during reading.")
 			break
 		}
 
 		// if another error encountered, exit program
 		if error != nil {
 			log.WithFields(log.Fields{
-				"event": "error",
-				"topic": "parsing file in specific line number",
-				"key": lineCounter,
-			}).Error("Failed to parse line")
+				"level" : "error",
+				"place" : "stimuli",
+				"method" : "LoadStimuliFromCSVFile",
+				"msg": "parsing file in specific line number",
+				"lineCounter" : lineCounter,
+				"error" : error,
+			}).Error("Failed to parse line.")
 			return stimuli, error
 		}
 
@@ -144,13 +144,27 @@ func RawExpectedConversion(stimuli *Stimuli) {
 
 	// collect expected string values
 	var rawExpectedValues []string
+
 	// for each stimulus in training set
 	for _, stimulus := range stimuli.Training {
 		check, _ := mu.StringInSlice(stimulus.RawExpected, rawExpectedValues)
 		if !check {
 			rawExpectedValues = append(rawExpectedValues, stimulus.RawExpected)
 		}
+		log.WithFields(log.Fields{
+			"level" : "debug",
+			"place" : "stimuli",
+			"msg" : "raw class exctraction",
+			"rawExpectedAdded" : stimulus.RawExpected,
+		}).Debug()
 	}
+
+	log.WithFields(log.Fields{
+		"level" : "info",
+		"place" : "stimuli",
+		"msg" : "raw class exctraction completed",
+		"numberOfRawUnique" : len(rawExpectedValues),
+	}).Info("Complete RawExpected value set filling.")
 
 	// for each stimulus in training set
 	for index, _ := range stimuli.Training {
@@ -220,5 +234,12 @@ func SeparateSet(stimuli *Stimuli, percentage float64, mix int) {
 		stimuli.Testing[k] = availableStimuli[i+k]
 		k++
 	}
+
+	log.WithFields(log.Fields{
+		"level" : "info",
+		"msg" : "splitting completed",
+		"trainSet" : len(stimuli.Training),
+		"testSet: " : len(stimuli.Testing),
+	}).Info("Complete splitting train/test set.")
 
 }
