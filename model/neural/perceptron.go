@@ -4,27 +4,25 @@ package neural
 import (
 
 	// sys import
-	"os"
 	"math/rand"
+	"os"
 
 	// third part import
 	log "github.com/sirupsen/logrus"
 
 	// this repo internal import
 	mu "github.com/made2591/go-perceptron-go/util"
-
 )
 
 // Perceptron struct represents a simple Perceptron network with a slice of n weights.
 type Perceptron struct {
 
 	// Weights represents Perceptron vector representation
-	Weights 		[]float64
+	Weights []float64
 	// Bias represents Perceptron natural propensity to spread signal
-	Bias    		float64
+	Bias float64
 	// Lrate represents learning rate of perceptron
-	Lrate   		float64
-
+	Lrate float64
 }
 
 // #######################################################################################
@@ -50,11 +48,11 @@ func RandomPerceptronInit(perceptron *Perceptron) {
 	perceptron.Lrate = rand.NormFloat64() * 0.01
 
 	log.WithFields(log.Fields{
-		"level" : "debug",
-		"place" : "perceptron",
-		"func" : "RandomPerceptronInit",
-		"msg" : "random perceptron weights init",
-		"weights" : perceptron.Weights,
+		"level":   "debug",
+		"place":   "perceptron",
+		"func":    "RandomPerceptronInit",
+		"msg":     "random perceptron weights init",
+		"weights": perceptron.Weights,
 	}).Debug()
 
 }
@@ -68,11 +66,11 @@ func UpdateWeights(perceptron *Perceptron, stimulus *Stimulus) (float64, float64
 	prevError = stimulus.Expected - predictedValue
 
 	// performs weights update for perceptron
-	perceptron.Bias = perceptron.Bias + perceptron.Lrate * prevError
+	perceptron.Bias = perceptron.Bias + perceptron.Lrate*prevError
 
 	// performs weights update for perceptron
 	for index, _ := range perceptron.Weights {
-		perceptron.Weights[index] = perceptron.Weights[index] + perceptron.Lrate * prevError * stimulus.Dimensions[index]
+		perceptron.Weights[index] = perceptron.Weights[index] + perceptron.Lrate*prevError*stimulus.Dimensions[index]
 	}
 
 	// compute prediction value and error for stimulus given perceptron AFTER update (actual state)
@@ -80,11 +78,11 @@ func UpdateWeights(perceptron *Perceptron, stimulus *Stimulus) (float64, float64
 	postError = stimulus.Expected - predictedValue
 
 	log.WithFields(log.Fields{
-		"level" : "debug",
-		"place" : "perceptron",
-		"func" : "UpdateWeights",
-		"msg" : "updating weights of perceptron",
-		"weights" : perceptron.Weights,
+		"level":   "debug",
+		"place":   "perceptron",
+		"func":    "UpdateWeights",
+		"msg":     "updating weights of perceptron",
+		"weights": perceptron.Weights,
 	}).Debug()
 
 	// return errors
@@ -95,11 +93,11 @@ func UpdateWeights(perceptron *Perceptron, stimulus *Stimulus) (float64, float64
 // TrainPerceptron trains a passed perceptron with stimuli passed, for specified number of epoch.
 // If init is 0, leaves weights unchanged before training.
 // If init is 1, reset weights and bias of perceptron before training.
-func TrainPerceptron(perceptron *Perceptron, stimuli *Stimuli, epochs int, init int) {
+func TrainPerceptron(perceptron *Perceptron, stimuli []Stimulus, epochs int, init int) {
 
 	// init weights if specified
 	if init == 1 {
-		perceptron.Weights = make([]float64, len(stimuli.Training[0].Dimensions))
+		perceptron.Weights = make([]float64, len(stimuli[0].Dimensions))
 		perceptron.Bias = 0.0
 	}
 
@@ -113,7 +111,7 @@ func TrainPerceptron(perceptron *Perceptron, stimuli *Stimuli, epochs int, init 
 	for epoch < epochs {
 
 		// update weight using each stimulus in training set
-		for _, stimulus := range stimuli.Training {
+		for _, stimulus := range stimuli {
 			prevError, postError := UpdateWeights(perceptron, &stimulus)
 			// NOTE: in each step, use weights already updated by previous
 			squaredPrevError = squaredPrevError + (prevError * prevError)
@@ -121,13 +119,13 @@ func TrainPerceptron(perceptron *Perceptron, stimuli *Stimuli, epochs int, init 
 		}
 
 		log.WithFields(log.Fields{
-			"level" : "debug",
-			"place" : "error evolution in epoch",
-			"method" : "TrainPerceptron",
-			"msg" : "epoch and squared errors reached before and after updating weights",
-			"epochReached" : epoch+1,
-			"squaredErrorPrev" : squaredPrevError,
-			"squaredErrorPost" : squaredPostError,
+			"level":            "debug",
+			"place":            "error evolution in epoch",
+			"method":           "TrainPerceptron",
+			"msg":              "epoch and squared errors reached before and after updating weights",
+			"epochReached":     epoch + 1,
+			"squaredErrorPrev": squaredPrevError,
+			"squaredErrorPost": squaredPostError,
 		}).Debug()
 
 		// increment epoch counter
@@ -141,7 +139,7 @@ func TrainPerceptron(perceptron *Perceptron, stimuli *Stimuli, epochs int, init 
 // It returns a float64 binary predicted value.
 func Predict(perceptron *Perceptron, stimulus *Stimulus) float64 {
 
-	if mu.ScalarProduct(perceptron.Weights, stimulus.Dimensions) + perceptron.Bias < 0.0 {
+	if mu.ScalarProduct(perceptron.Weights, stimulus.Dimensions)+perceptron.Bias < 0.0 {
 		return 0.0
 	}
 	return 1.0
@@ -155,12 +153,12 @@ func Accuracy(actual []float64, predicted []float64) (int, float64) {
 	// if slices have different number of elements
 	if len(actual) != len(predicted) {
 		log.WithFields(log.Fields{
-			"level" : "error",
-			"place" : "perceptron",
-			"method" : "Accuracy",
-			"msg" : "accuracy between actual and predicted slices of values",
-			"actualLen" : len(actual),
-			"predictedLen" : len(predicted),
+			"level":        "error",
+			"place":        "perceptron",
+			"method":       "Accuracy",
+			"msg":          "accuracy between actual and predicted slices of values",
+			"actualLen":    len(actual),
+			"predictedLen": len(predicted),
 		}).Error("Failed to compute accuracy between actual values and predictions: different length.")
 		return -1, -1.0
 	}
