@@ -26,7 +26,7 @@ go run main.go
 
 ## To complete yet
 
-- cross validation testing
+- k-fold validation testing
 - test methods
 
 ## Future features
