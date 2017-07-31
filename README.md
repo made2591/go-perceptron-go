@@ -3,6 +3,12 @@
 A single level perceptron classifier with weights estimated from sonar training data set using stochastic gradient descent.
 The implementation is in dev. Planned features:
 
+- complete future features XD (see above)
+- find co-workers
+- dev a three (then k-parameter) level networks with backprop
+- create a ml library in openqasm (just kidding)
+- brainstorming / devtesting other algorithms in ml
+
 ## Dependencies
 
 - [logrus](https://github.com/sirupsen/logrus)
