@@ -52,7 +52,7 @@ func StringToFloat(slice []string, mode int, def float64) []float64 {
 	for index, value := range slice {
 
 		// cast and error
-		casted, err := strconv.ParseFloat(value, 64);
+		casted, err := strconv.ParseFloat(value, 64)
 
 		if mode == 0 {
 			if err == nil {
@@ -82,12 +82,12 @@ func ScalarProduct(a []float64, b []float64) float64 {
 	// if slices have different number of elements
 	if len(a) != len(b) {
 		log.WithFields(log.Fields{
-			"level" : "error",
-			"place" : "mixed",
-			"method" : "ScalarProduct",
-			"msg": "scalar product between slices",
-			"aLen" : len(a),
-			"bLen" : len(b),
+			"level":  "error",
+			"place":  "mixed",
+			"method": "ScalarProduct",
+			"msg":    "scalar product between slices",
+			"aLen":   len(a),
+			"bLen":   len(b),
 		}).Error("Failed to compute scalar product between slices: different length.")
 		return -1.0
 	}
