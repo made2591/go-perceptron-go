@@ -3,6 +3,10 @@
 A single level perceptron classifier with weights estimated from sonar training data set using stochastic gradient descent.
 The implementation is in dev. Planned features:
 
+UPDATE 2: I started working on ```mlp``` branch for MLP + back prop. It doens't work yet but...I push first commit after some exp in dev. I delete ```dev``` because of some structs optimization.
+
+UPDATE 1: we will work on k-fold validation.
+
 - complete future features XD (see above)
 - find co-workers
 - dev a three (then k-parameter) level networks with backprop
