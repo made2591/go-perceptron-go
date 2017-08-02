@@ -6,10 +6,8 @@ import (
 	"encoding/csv"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"strings"
-	"time"
 
 	// third part import
 	log "github.com/sirupsen/logrus"
@@ -161,45 +159,4 @@ func RawExpectedConversion(stimuli []Stimulus) {
 		}
 	}
 
-}
-
-// SeparateSet split an array of stimuli in training and testing.
-// if shuffle is 0 the function takes the first percentage items as train and the other as test
-// otherwise the stimuli array is shuffled before partitioning
-func SeparateSet(stimuli []Stimulus, percentage float64, shuffle int) (train []Stimulus, test []Stimulus) {
-
-	// create splitting pivot
-	var splitPivot int = int(float64(len(stimuli)) * percentage)
-	train = make([]Stimulus, splitPivot)
-	test = make([]Stimulus, len(stimuli)-splitPivot)
-
-	// if mixed mode, split with shuffling
-	if shuffle == 1 {
-		// create random indexes permutation
-		rand.Seed(time.Now().UTC().UnixNano())
-		perm := rand.Perm(len(stimuli))
-
-		// copy training data
-		for i := 0; i < splitPivot; i++ {
-			train[i] = stimuli[perm[i]]
-		}
-		// copy test data
-		for i := 0; i < len(stimuli)-splitPivot; i++ {
-			test[i] = stimuli[perm[i]]
-		}
-
-	} else {
-		// else, split without shuffle
-		train = stimuli[:splitPivot]
-		test = stimuli[splitPivot:]
-	}
-
-	log.WithFields(log.Fields{
-		"level":     "info",
-		"msg":       "splitting completed",
-		"trainSet":  len(train),
-		"testSet: ": len(test),
-	}).Info("Complete splitting train/test set.")
-
-	return train, test
 }
