@@ -37,7 +37,7 @@ type Stimulus struct {
 // #######################################################################################
 
 // LoadStimuliFromCSVFile load a CSV dataset into an array of Stimulus.
-func LoadStimuliFromCSVFile(filePath string) ([]Stimulus, error) {
+func LoadStimuliFromCSVFile(filePath string) ([]Stimulus, error, []string) {
 
 	// init stimuli
 	var stimuli []Stimulus
@@ -54,7 +54,7 @@ func LoadStimuliFromCSVFile(filePath string) ([]Stimulus, error) {
 			"filePath": filePath,
 			"error":    error,
 		}).Fatal("Failed to read file in specified path.")
-		return stimuli, error
+		return stimuli, error, nil
 	}
 
 	// create pointer to read file
@@ -96,7 +96,7 @@ func LoadStimuliFromCSVFile(filePath string) ([]Stimulus, error) {
 				"lineCounter": lineCounter,
 				"error":       error,
 			}).Error("Failed to parse line.")
-			return stimuli, error
+			return stimuli, error, nil
 		}
 
 		// line values cast to float64
@@ -112,17 +112,17 @@ func LoadStimuliFromCSVFile(filePath string) ([]Stimulus, error) {
 	}
 
 	// cast expected values to float64 numeric values
-	RawExpectedConversion(stimuli)
+	mapped := RawExpectedConversion(stimuli)
 
 	// return stimuli
-	return stimuli, nil
+	return stimuli, nil, mapped
 
 }
 
 // RawExpectedConversion converts (string) raw expected values in stimuli
 // training / testing sets to float64 values
 // It works on stimule struct (pointer) passed. It doens't returns nothing
-func RawExpectedConversion(stimuli []Stimulus) {
+func RawExpectedConversion(stimuli []Stimulus) []string {
 
 	// collect expected string values
 	var rawExpectedValues []string
@@ -158,5 +158,7 @@ func RawExpectedConversion(stimuli []Stimulus) {
 			}
 		}
 	}
+
+	return rawExpectedValues
 
 }

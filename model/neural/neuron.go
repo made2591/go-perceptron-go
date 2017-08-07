@@ -23,6 +23,12 @@ type Neuron struct {
 	Bias float64
 	// Lrate represents learning rate of neuron
 	Lrate float64
+
+	// Weights represents Neuron vector representation
+	Value float64
+	// Weights represents Neuron vector representation
+	Delta float64
+
 }
 
 // #######################################################################################
@@ -35,17 +41,21 @@ func init() {
 }
 
 // RandomNeuronInit initialize neuron weight, bias and learning rate using NormFloat64 random value.
-func RandomNeuronInit(neuron *Neuron) {
+func RandomNeuronInit(neuron *Neuron, dim int) {
+
+	neuron.Weights = make([]float64, dim)
 
 	// init random weights
 	for index, _ := range neuron.Weights {
 		// init random threshold weight
-		neuron.Weights[index] = rand.NormFloat64()
+		neuron.Weights[index] = rand.NormFloat64() * 0.00001
 	}
 
 	// init random bias and lrate
-	neuron.Bias = rand.NormFloat64()
-	neuron.Lrate = rand.NormFloat64() * 0.01
+	neuron.Bias  = rand.NormFloat64() * 0.00001
+	neuron.Lrate = rand.NormFloat64() * 0.00001
+	neuron.Value = rand.NormFloat64() * 0.00001
+	neuron.Delta = rand.NormFloat64() * 0.00001
 
 	log.WithFields(log.Fields{
 		"level":   "debug",

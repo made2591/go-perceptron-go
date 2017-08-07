@@ -2,12 +2,16 @@
 package util
 
 import (
+
 	// sys import
 	"os"
+	"time"
 	"strconv"
+	"math/rand"
 
 	// github import
 	log "github.com/sirupsen/logrus"
+
 )
 
 func init() {
@@ -15,6 +19,13 @@ func init() {
 	log.SetOutput(os.Stdout)
 	// Only log the warning severity or above.
 	log.SetLevel(log.DebugLevel)
+}
+
+// Random return pseudo random number in [min, max]
+func Random(min, max int) int {
+	max = max + 1
+	rand.Seed(time.Now().Unix())
+	return rand.Intn(max-min) + min
 }
 
 // StringInSlice looks for a string in slice.
