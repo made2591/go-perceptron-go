@@ -29,7 +29,7 @@ func main() {
 	var percentage float64 = 0.67
 	var shuffle = 1
 
-	// single layer perceptron parameters
+	// single layer neuron parameters
 	var bias float64 = 0.0
 	var learningRate float64 = 0.01
 
@@ -40,15 +40,15 @@ func main() {
 	// Stimuli initialization
 	stimuli, _ := mn.LoadStimuliFromCSVFile(filePath)
 
-	// Perceptron initialization
-	var perceptron mn.Perceptron = mn.Perceptron{Weights: make([]float64, len(stimuli[0].Dimensions)), Bias: bias, Lrate: learningRate}
+	// Neuron initialization
+	var neuron mn.Neuron = mn.Neuron{Weights: make([]float64, len(stimuli[0].Dimensions)), Bias: bias, Lrate: learningRate}
 
 	// compute scores for each folds execution
-	var scores []float64 = v.KFoldValidation(&perceptron, stimuli, epochs, folds, shuffle)
+	var scores []float64 = v.KFoldValidation(&neuron, stimuli, epochs, folds, shuffle)
 
 	// use simpler validation
-	var perceptron2 mn.Perceptron = mn.Perceptron{Weights: make([]float64, len(stimuli[0].Dimensions)), Bias: bias, Lrate: learningRate}
-	var scores2 []float64 = v.RandomSubsamplingValidation(&perceptron2, stimuli, percentage, epochs, folds, shuffle)
+	var neuron2 mn.Neuron = mn.Neuron{Weights: make([]float64, len(stimuli[0].Dimensions)), Bias: bias, Lrate: learningRate}
+	var scores2 []float64 = v.RandomSubsamplingValidation(&neuron2, stimuli, percentage, epochs, folds, shuffle)
 
 	log.WithFields(log.Fields{
 		"level":  "info",

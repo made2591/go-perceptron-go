@@ -14,14 +14,14 @@ import (
 	mu "github.com/made2591/go-perceptron-go/util"
 )
 
-// Perceptron struct represents a simple Perceptron network with a slice of n weights.
-type Perceptron struct {
+// Neuron struct represents a simple Neuron network with a slice of n weights.
+type Neuron struct {
 
-	// Weights represents Perceptron vector representation
+	// Weights represents Neuron vector representation
 	Weights []float64
-	// Bias represents Perceptron natural propensity to spread signal
+	// Bias represents Neuron natural propensity to spread signal
 	Bias float64
-	// Lrate represents learning rate of perceptron
+	// Lrate represents learning rate of neuron
 	Lrate float64
 }
 
@@ -34,55 +34,55 @@ func init() {
 	log.SetLevel(log.InfoLevel)
 }
 
-// RandomPerceptronInit initialize perceptron weight, bias and learning rate using NormFloat64 random value.
-func RandomPerceptronInit(perceptron *Perceptron) {
+// RandomNeuronInit initialize neuron weight, bias and learning rate using NormFloat64 random value.
+func RandomNeuronInit(neuron *Neuron) {
 
 	// init random weights
-	for index, _ := range perceptron.Weights {
+	for index, _ := range neuron.Weights {
 		// init random threshold weight
-		perceptron.Weights[index] = rand.NormFloat64()
+		neuron.Weights[index] = rand.NormFloat64()
 	}
 
 	// init random bias and lrate
-	perceptron.Bias = rand.NormFloat64()
-	perceptron.Lrate = rand.NormFloat64() * 0.01
+	neuron.Bias = rand.NormFloat64()
+	neuron.Lrate = rand.NormFloat64() * 0.01
 
 	log.WithFields(log.Fields{
 		"level":   "debug",
-		"place":   "perceptron",
-		"func":    "RandomPerceptronInit",
-		"msg":     "random perceptron weights init",
-		"weights": perceptron.Weights,
+		"place":   "neuron",
+		"func":    "RandomNeuronInit",
+		"msg":     "random neuron weights init",
+		"weights": neuron.Weights,
 	}).Debug()
 
 }
 
-// UpdateWeights performs update in perceptron weights with respect to passed stimulus.
+// UpdateWeights performs update in neuron weights with respect to passed stimulus.
 // It returns error of prediction before and after updating weights.
-func UpdateWeights(perceptron *Perceptron, stimulus *Stimulus) (float64, float64) {
+func UpdateWeights(neuron *Neuron, stimulus *Stimulus) (float64, float64) {
 
-	// compute prediction value and error for stimulus given perceptron BEFORE update (actual state)
-	var predictedValue, prevError, postError float64 = Predict(perceptron, stimulus), 0.0, 0.0
+	// compute prediction value and error for stimulus given neuron BEFORE update (actual state)
+	var predictedValue, prevError, postError float64 = Predict(neuron, stimulus), 0.0, 0.0
 	prevError = stimulus.Expected - predictedValue
 
-	// performs weights update for perceptron
-	perceptron.Bias = perceptron.Bias + perceptron.Lrate*prevError
+	// performs weights update for neuron
+	neuron.Bias = neuron.Bias + neuron.Lrate*prevError
 
-	// performs weights update for perceptron
-	for index, _ := range perceptron.Weights {
-		perceptron.Weights[index] = perceptron.Weights[index] + perceptron.Lrate*prevError*stimulus.Dimensions[index]
+	// performs weights update for neuron
+	for index, _ := range neuron.Weights {
+		neuron.Weights[index] = neuron.Weights[index] + neuron.Lrate*prevError*stimulus.Dimensions[index]
 	}
 
-	// compute prediction value and error for stimulus given perceptron AFTER update (actual state)
-	predictedValue = Predict(perceptron, stimulus)
+	// compute prediction value and error for stimulus given neuron AFTER update (actual state)
+	predictedValue = Predict(neuron, stimulus)
 	postError = stimulus.Expected - predictedValue
 
 	log.WithFields(log.Fields{
 		"level":   "debug",
-		"place":   "perceptron",
+		"place":   "neuron",
 		"func":    "UpdateWeights",
-		"msg":     "updating weights of perceptron",
-		"weights": perceptron.Weights,
+		"msg":     "updating weights of neuron",
+		"weights": neuron.Weights,
 	}).Debug()
 
 	// return errors
@@ -90,15 +90,15 @@ func UpdateWeights(perceptron *Perceptron, stimulus *Stimulus) (float64, float64
 
 }
 
-// TrainPerceptron trains a passed perceptron with stimuli passed, for specified number of epoch.
+// TrainNeuron trains a passed neuron with stimuli passed, for specified number of epoch.
 // If init is 0, leaves weights unchanged before training.
-// If init is 1, reset weights and bias of perceptron before training.
-func TrainPerceptron(perceptron *Perceptron, stimuli []Stimulus, epochs int, init int) {
+// If init is 1, reset weights and bias of neuron before training.
+func TrainNeuron(neuron *Neuron, stimuli []Stimulus, epochs int, init int) {
 
 	// init weights if specified
 	if init == 1 {
-		perceptron.Weights = make([]float64, len(stimuli[0].Dimensions))
-		perceptron.Bias = 0.0
+		neuron.Weights = make([]float64, len(stimuli[0].Dimensions))
+		neuron.Bias = 0.0
 	}
 
 	// init counter
@@ -112,7 +112,7 @@ func TrainPerceptron(perceptron *Perceptron, stimuli []Stimulus, epochs int, ini
 
 		// update weight using each stimulus in training set
 		for _, stimulus := range stimuli {
-			prevError, postError := UpdateWeights(perceptron, &stimulus)
+			prevError, postError := UpdateWeights(neuron, &stimulus)
 			// NOTE: in each step, use weights already updated by previous
 			squaredPrevError = squaredPrevError + (prevError * prevError)
 			squaredPostError = squaredPostError + (postError * postError)
@@ -121,7 +121,7 @@ func TrainPerceptron(perceptron *Perceptron, stimuli []Stimulus, epochs int, ini
 		log.WithFields(log.Fields{
 			"level":            "debug",
 			"place":            "error evolution in epoch",
-			"method":           "TrainPerceptron",
+			"method":           "TrainNeuron",
 			"msg":              "epoch and squared errors reached before and after updating weights",
 			"epochReached":     epoch + 1,
 			"squaredErrorPrev": squaredPrevError,
@@ -135,11 +135,11 @@ func TrainPerceptron(perceptron *Perceptron, stimuli []Stimulus, epochs int, ini
 
 }
 
-// Predict performs a perceptron prediction to passed stimulus.
+// Predict performs a neuron prediction to passed stimulus.
 // It returns a float64 binary predicted value.
-func Predict(perceptron *Perceptron, stimulus *Stimulus) float64 {
+func Predict(neuron *Neuron, stimulus *Stimulus) float64 {
 
-	if mu.ScalarProduct(perceptron.Weights, stimulus.Dimensions)+perceptron.Bias < 0.0 {
+	if mu.ScalarProduct(neuron.Weights, stimulus.Dimensions)+neuron.Bias < 0.0 {
 		return 0.0
 	}
 	return 1.0
@@ -154,7 +154,7 @@ func Accuracy(actual []float64, predicted []float64) (int, float64) {
 	if len(actual) != len(predicted) {
 		log.WithFields(log.Fields{
 			"level":        "error",
-			"place":        "perceptron",
+			"place":        "neuron",
 			"method":       "Accuracy",
 			"msg":          "accuracy between actual and predicted slices of values",
 			"actualLen":    len(actual),

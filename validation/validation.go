@@ -112,9 +112,9 @@ func KFoldSplit(stimuli []mn.Stimulus, k int, shuffle int) [][]mn.Stimulus {
 	return folds
 }
 
-// RandomSubsamplingValidation perform evaluation on perceptron algorithm.
+// RandomSubsamplingValidation perform evaluation on neuron algorithm.
 // It returns scores reached for each fold iteration.
-func RandomSubsamplingValidation(perceptron *mn.Perceptron, stimuli []mn.Stimulus, percentage float64, epochs int, folds int, shuffle int) []float64 {
+func RandomSubsamplingValidation(neuron *mn.Neuron, stimuli []mn.Stimulus, percentage float64, epochs int, folds int, shuffle int) []float64 {
 
 	// results and predictions vars init
 	var scores, actual, predicted []float64
@@ -126,13 +126,13 @@ func RandomSubsamplingValidation(perceptron *mn.Perceptron, stimuli []mn.Stimulu
 		// split the dataset with shuffling
 		train, test = TrainTestSplit(stimuli, percentage, shuffle)
 
-		// train perceptron with set of stimuli, for specified number of epochs
-		mn.TrainPerceptron(perceptron, train, epochs, 1)
+		// train neuron with set of stimuli, for specified number of epochs
+		mn.TrainNeuron(neuron, train, epochs, 1)
 
 		// compute predictions for each stimulus in testing set
 		for _, stimulus := range test {
 			actual = append(actual, stimulus.Expected)
-			predicted = append(predicted, mn.Predict(perceptron, &stimulus))
+			predicted = append(predicted, mn.Predict(neuron, &stimulus))
 		}
 
 		// compute score
@@ -171,9 +171,9 @@ func RandomSubsamplingValidation(perceptron *mn.Perceptron, stimuli []mn.Stimulu
 	return scores
 }
 
-// RandomSubsamplingValidation perform evaluation on perceptron algorithm.
+// RandomSubsamplingValidation perform evaluation on neuron algorithm.
 // It returns scores reached for each fold iteration.
-func KFoldValidation(perceptron *mn.Perceptron, stimuli []mn.Stimulus, epochs int, k int, shuffle int) []float64 {
+func KFoldValidation(neuron *mn.Neuron, stimuli []mn.Stimulus, epochs int, k int, shuffle int) []float64 {
 
 	// results and predictions vars init
 	var scores, actual, predicted []float64
@@ -195,13 +195,13 @@ func KFoldValidation(perceptron *mn.Perceptron, stimuli []mn.Stimulus, epochs in
 		}
 		test = folds[t]
 
-		// train perceptron with set of stimuli, for specified number of epochs
-		mn.TrainPerceptron(perceptron, train, epochs, 1)
+		// train neuron with set of stimuli, for specified number of epochs
+		mn.TrainNeuron(neuron, train, epochs, 1)
 
 		// compute predictions for each stimulus in testing set
 		for _, stimulus := range test {
 			actual = append(actual, stimulus.Expected)
-			predicted = append(predicted, mn.Predict(perceptron, &stimulus))
+			predicted = append(predicted, mn.Predict(neuron, &stimulus))
 		}
 
 		// compute score
