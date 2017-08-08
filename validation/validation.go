@@ -9,6 +9,9 @@ import (
 
 	// internal import
 	mn "github.com/made2591/go-perceptron-go/model/neural"
+	mu "github.com/made2591/go-perceptron-go/util"
+
+	//"fmt"
 )
 
 // TrainTestSplit split an array of stimuli in training and testing.
@@ -202,6 +205,146 @@ func KFoldValidation(neuron *mn.Neuron, stimuli []mn.Stimulus, epochs int, k int
 		for _, stimulus := range test {
 			actual = append(actual, stimulus.Expected)
 			predicted = append(predicted, mn.Predict(neuron, &stimulus))
+		}
+
+		// compute score
+		_, percentageCorrect := mn.Accuracy(actual, predicted)
+		scores[t] = percentageCorrect
+
+		log.WithFields(log.Fields{
+			"level":             "info",
+			"place":             "validation",
+			"method":            "KFoldValidation",
+			"foldNumber":        t,
+			"trainSetLen":       len(train),
+			"testSetLen":        len(test),
+			"percentageCorrect": percentageCorrect,
+		}).Info("Evaluation completed for current fold.")
+	}
+
+	// compute average score
+	acc := 0.0
+	for i := 0; i < len(scores); i++ {
+		acc += scores[i]
+	}
+
+	mean := acc / float64(len(scores))
+
+	log.WithFields(log.Fields{
+		"level":       "info",
+		"place":       "validation",
+		"method":      "KFoldValidation",
+		"folds":       k,
+		"trainSetLen": len(train),
+		"testSetLen":  len(test),
+		"meanScore":   mean,
+	}).Info("Evaluation completed for all folds.")
+
+	return scores
+
+}
+
+// It returns scores reached for each fold iteration.
+func MLPRandomSubsamplingValidation(mlp *mn.MultiLayerPerceptron, stimuli []mn.Stimulus, percentage float64, epochs int, folds int, shuffle int, mapped []string) []float64 {
+
+	// results and predictions vars init
+	var scores, actual, predicted []float64
+	var train, test []mn.Stimulus
+
+	scores = make([]float64, folds)
+
+	for t := 0; t < folds; t++ {
+		// split the dataset with shuffling
+		train, test = TrainTestSplit(stimuli, percentage, shuffle)
+
+		// train mlp with set of stimuli, for specified number of epochs
+		mn.MLPTrain(mlp, stimuli, mapped, epochs)
+
+		// compute predictions for each stimulus in testing set
+		for _, stimulus := range test {
+			// get actual
+			actual = append(actual, stimulus.Expected)
+			// get output from network
+			o_out := mn.Execute(mlp, &stimulus)
+			// get index of max output
+			_, indexMaxOut := mu.MaxInSlice(o_out)
+			// add to predicted values
+			predicted = append(predicted, float64(indexMaxOut))
+		}
+
+		// compute score
+		_, percentageCorrect := mn.Accuracy(actual, predicted)
+		scores[t] = percentageCorrect
+
+		log.WithFields(log.Fields{
+			"level":             "info",
+			"place":             "validation",
+			"method":            "RandomSubsamplingValidation",
+			"foldNumber":        t,
+			"trainSetLen":       len(train),
+			"testSetLen":        len(test),
+			"percentageCorrect": percentageCorrect,
+		}).Info("Evaluation completed for current fold.")
+	}
+
+	// compute average score
+	acc := 0.0
+	for i := 0; i < len(scores); i++ {
+		acc += scores[i]
+	}
+
+	mean := acc / float64(len(scores))
+
+	log.WithFields(log.Fields{
+		"level":       "info",
+		"place":       "validation",
+		"method":      "RandomSubsamplingValidation",
+		"folds":       folds,
+		"trainSetLen": len(train),
+		"testSetLen":  len(test),
+		"meanScore":   mean,
+	}).Info("Evaluation completed for all folds.")
+
+	return scores
+}
+
+// RandomSubsamplingValidation perform evaluation on neuron algorithm.
+// It returns scores reached for each fold iteration.
+func MLPKFoldValidation(mlp *mn.MultiLayerPerceptron, stimuli []mn.Stimulus, epochs int, k int, shuffle int, mapped []string) []float64 {
+
+	// results and predictions vars init
+	var scores, actual, predicted []float64
+	var train, test []mn.Stimulus
+
+	scores = make([]float64, k)
+
+	// split the dataset with shuffling
+	folds := KFoldSplit(stimuli, k, shuffle)
+
+	// the t-th fold is used as test
+	for t := 0; t < k; t++ {
+		// prepare train
+		train = nil
+		for i := 0; i < k; i++ {
+			if i != t {
+				train = append(train, folds[i]...)
+			}
+		}
+		test = folds[t]
+
+		// train mlp with set of stimuli, for specified number of epochs
+		mn.MLPTrain(mlp, stimuli, mapped, epochs)
+
+		// compute predictions for each stimulus in testing set
+		for _, stimulus := range test {
+			// get actual
+			actual = append(actual, stimulus.Expected)
+			// get output from network
+			o_out := mn.Execute(mlp, &stimulus)
+			// get index of max output
+			_, indexMaxOut := mu.MaxInSlice(o_out)
+			// add to predicted values
+			predicted = append(predicted, float64(indexMaxOut))
 		}
 
 		// compute score

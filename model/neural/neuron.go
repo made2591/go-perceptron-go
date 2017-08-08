@@ -14,6 +14,12 @@ import (
 	mu "github.com/made2591/go-perceptron-go/util"
 )
 
+const (
+
+	SCALING_FACTOR = 0.0000000000001
+
+)
+
 // Neuron struct represents a simple Neuron network with a slice of n weights.
 type Neuron struct {
 
@@ -24,9 +30,9 @@ type Neuron struct {
 	// Lrate represents learning rate of neuron
 	Lrate float64
 
-	// Weights represents Neuron vector representation
+	// Value represents desired value when loading input into network in Multi Layer Perceptron
 	Value float64
-	// Weights represents Neuron vector representation
+	// Delta represents delta error for unit
 	Delta float64
 
 }
@@ -48,14 +54,14 @@ func RandomNeuronInit(neuron *Neuron, dim int) {
 	// init random weights
 	for index, _ := range neuron.Weights {
 		// init random threshold weight
-		neuron.Weights[index] = rand.NormFloat64() * 0.00001
+		neuron.Weights[index] = rand.NormFloat64() * SCALING_FACTOR
 	}
 
 	// init random bias and lrate
-	neuron.Bias  = rand.NormFloat64() * 0.00001
-	neuron.Lrate = rand.NormFloat64() * 0.00001
-	neuron.Value = rand.NormFloat64() * 0.00001
-	neuron.Delta = rand.NormFloat64() * 0.00001
+	neuron.Bias  = rand.NormFloat64() * SCALING_FACTOR
+	neuron.Lrate = rand.NormFloat64() * SCALING_FACTOR
+	neuron.Value = rand.NormFloat64() * SCALING_FACTOR
+	neuron.Delta = rand.NormFloat64() * SCALING_FACTOR
 
 	log.WithFields(log.Fields{
 		"level":   "debug",

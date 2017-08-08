@@ -1,3 +1,4 @@
+// Neural provides struct to represents most common neural networks model and algorithms to train / test them.
 package neural
 
 import (
@@ -6,7 +7,10 @@ import (
 
 )
 
+// define transfer function desiderata
 type transferFunction func(float64) float64
+
+// different type of transfer function
 
 func HeavysideTransfer(d float64) float64 {
 

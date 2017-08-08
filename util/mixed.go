@@ -115,3 +115,17 @@ func ScalarProduct(a []float64, b []float64) float64 {
 	return result
 
 }
+
+// MaxInSlice return max value in float64 slice
+// It returns the max float64 value and index of max in slice.
+func MaxInSlice(v []float64) (float64, int) {
+	mv := 0.0
+	mi := 0
+	for i, e := range v {
+		if e > mv {
+			mv = e
+			mi = i
+		}
+	}
+	return mv, mi
+}
