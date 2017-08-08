@@ -1,6 +1,6 @@
 # Go Perceptron
 
-A single level perceptron classifier with weights estimated from sonar training data set using stochastic gradient descent.
+A single / multi level perceptron classifier with weights estimated from sonar training data set using stochastic gradient descent. Recently I added back propagation algorithm over multilayer perceptron network.
 The implementation is in dev. Planned features:
 
 - complete future features XD (see above)
