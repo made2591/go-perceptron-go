@@ -10,6 +10,8 @@ import (
 
 	// third part import
 	log "github.com/sirupsen/logrus"
+
+	// this repo internal import
 	//mu "github.com/made2591/go-perceptron-go/util"
 
 )
@@ -31,7 +33,7 @@ func init() {
 func PrepareRNNNet(i int, h int, o int, lr float64, tf transferFunction, trd transferFunction) (rnn MultiLayerPerceptron) {
 
 	// setup a three layer network with Input Context dimension
-	rnn = PrepareMLP( [3]int{i+h, h, o}, lr, tf, trd);
+	rnn = PrepareMLPNet([]int{i, h, o}, lr, tf, trd);
 
 	log.WithFields(log.Fields{
 		"level":       "info",
@@ -46,10 +48,10 @@ func PrepareRNNNet(i int, h int, o int, lr float64, tf transferFunction, trd tra
 
 }
 
-// Execute a multi layer Perceptron neural network.
+// ExecuteElman a multi layer Perceptron neural network.
 // [mlp:MultiLayerPerceptron] multilayer perceptron network pointer, [s:Stimulus] input value
 // It returns output values by network
-func Execute(mlp *MultiLayerPerceptron, s *Stimulus) (r []float64) {
+func ExecuteElman(mlp *MultiLayerPerceptron, s *Stimulus) (r []float64) {
 
 	// new value
 	nv := 0.0
@@ -73,7 +75,7 @@ func Execute(mlp *MultiLayerPerceptron, s *Stimulus) (r []float64) {
 
 	}
 
-	// execute - hiddens + output
+	// executeelman - hiddens + output
 	// for each layers from first hidden to output
 	for k := 1; k < len(mlp.Layers); k++ {
 
@@ -110,7 +112,16 @@ func Execute(mlp *MultiLayerPerceptron, s *Stimulus) (r []float64) {
 
 				for z := len(s.Dimensions); z < mlp.Layers[0].Length; z++ {
 
-					// save output of hidden layer to context
+					// // save output of hidden layer to context
+					// log.WithFields(log.Fields{
+					// 	"level"				: "info",
+					// 	"len z" 			: z,
+					// 	"s.Dimensions"		: s.Dimensions,
+					// 	"len(s.Dimensions)" : len(s.Dimensions),
+					// 	"len mlp.Layers[0].Neurons" : len(mlp.Layers[0].Neurons),
+					// 	"len mlp.Layers[k].Neurons" : len(mlp.Layers[k].Neurons),						
+					// }).Info("DEBUG");
+
 					mlp.Layers[0].Neurons[z].Value = mlp.Layers[k].Neurons[z-len(s.Dimensions)].Value
 
 				}
@@ -150,10 +161,10 @@ func Execute(mlp *MultiLayerPerceptron, s *Stimulus) (r []float64) {
 // [mlp:MultiLayerPerceptron] input value		[s:Stimulus] input value (scaled between 0 and 1)
 // [o:[]float64] expected output value (scaled between 0 and 1)
 // return [r:float64] delta error between generated output and expected output
-func BackPropagate(mlp *MultiLayerPerceptron, s *Stimulus, o []float64) (r float64) {
+func BackPropagateElman(mlp *MultiLayerPerceptron, s *Stimulus, o []float64) (r float64) {
 
-	// execute network with stimulus passed over each level to output
-	no := Execute(mlp, s)
+	// executeelman network with stimulus passed over each level to output
+	no := ExecuteElman(mlp, s)
 
 	// init error
 	e := 0.0
@@ -170,7 +181,7 @@ func BackPropagate(mlp *MultiLayerPerceptron, s *Stimulus, o []float64) (r float
 
 	}
 
-	// backpropagate error to previous layers
+	// backpropagateelman error to previous layers
 	// for each layers starting from the last hidden (len(mlp.Layers)-2)
 	for k := len(mlp.Layers)-2; k >= 0; k-- {
 
@@ -258,8 +269,16 @@ func RNNTrain(mlp *MultiLayerPerceptron, stimuli []Stimulus, mapped []string, ep
 			}
 			// setup desired output for specific class of stimulus focused
 			output[int(stimulus.Expected)] = 1.0
+
+			// log.WithFields(log.Fields{
+			// 	"level":             "info",
+			// 	"place":             "train",
+			// 	"method":            "RNNTrain",
+			// 	"stimulus":        	 stimulus.Dimensions,
+			// }).Info("DEBUG EXT")
+
 			// back propagation
-			BackPropagate(mlp, &stimulus, output)
+			BackPropagateElman(mlp, &stimulus, output)
 
 		}
 
