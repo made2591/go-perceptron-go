@@ -340,9 +340,9 @@ func MLPKFoldValidation(mlp *mn.MultiLayerPerceptron, stimuli []mn.Stimulus, epo
 			// get actual
 			actual = append(actual, stimulus.Expected)
 			// get output from network
-			o_out := mn.Execute(mlp, &stimulus)
+			//o_out := mn.Execute(mlp, &stimulus)
 			// get index of max output
-			_, indexMaxOut := mu.MaxInSlice(o_out)
+			//_, indexMaxOut := mu.MaxInSlice(o_out)
 			// add to predicted values
 			predicted = append(predicted, float64(indexMaxOut))
 		}
@@ -406,7 +406,7 @@ func RNNRandomSubsamplingValidation(mlp *mn.MultiLayerPerceptron, stimuli []mn.S
 			// get actual
 			actual = append(actual, stimulus.Expected)
 			// get output from network
-			o_out := mn.Execute(mlp, &stimulus)
+			o_out := mn.ExecuteElman(mlp, &stimulus)
 			// get index of max output
 			_, indexMaxOut := mu.MaxInSlice(o_out)
 			// add to predicted values
@@ -481,7 +481,7 @@ func RNNKFoldValidation(mlp *mn.MultiLayerPerceptron, stimuli []mn.Stimulus, epo
 			// get actual
 			actual = append(actual, stimulus.Expected)
 			// get output from network
-			o_out := mn.Execute(mlp, &stimulus)
+			o_out := mn.ExecuteElman(mlp, &stimulus)
 			// get index of max output
 			_, indexMaxOut := mu.MaxInSlice(o_out)
 			// add to predicted values

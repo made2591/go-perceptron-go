@@ -54,3 +54,5 @@ func PrepareLayer(n int, p int) (l Layer) {
 	return
 
 }
+
+//make([]Neuron, n)
