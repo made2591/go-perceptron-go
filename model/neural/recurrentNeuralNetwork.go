@@ -49,9 +49,9 @@ func PrepareRNNNet(i int, h int, o int, lr float64, tf transferFunction, trd tra
 }
 
 // ExecuteElman a multi layer Perceptron neural network.
-// [mlp:MultiLayerPerceptron] multilayer perceptron network pointer, [s:Stimulus] input value
+// [mlp:MultiLayerPerceptron] multilayer perceptron network pointer, [s:Pattern] input value
 // It returns output values by network
-func ExecuteElman(mlp *MultiLayerPerceptron, s *Stimulus) (r []float64) {
+func ExecuteElman(mlp *MultiLayerPerceptron, s *Pattern) (r []float64) {
 
 	// new value
 	nv := 0.0
@@ -59,10 +59,10 @@ func ExecuteElman(mlp *MultiLayerPerceptron, s *Stimulus) (r []float64) {
 	// result of execution for each OUTPUT Neuron in OUTPUT Layer
 	r = make([]float64, mlp.Layers[len(mlp.Layers)-1].Length)
 
-	// show stimulus to network =>
+	// show pattern to network =>
 	for i := 0; i < len(s.Dimensions); i++ {
 
-		// setup value of each neurons in first layers to respective features of stimulus
+		// setup value of each neurons in first layers to respective features of pattern
 		mlp.Layers[0].Neurons[i].Value = s.Dimensions[i]
 
 	}
@@ -93,7 +93,7 @@ func ExecuteElman(mlp *MultiLayerPerceptron, s *Stimulus) (r []float64) {
 
 				log.WithFields(log.Fields{
 					"level":     "debug",
-					"msg":       "multilayer perceptron execution",
+					"msg":       "elman training execution",
 					"len(mlp.Layers)":  len(mlp.Layers),
 					"layer:  ": k,
 					"neuron: ": i,
@@ -158,12 +158,12 @@ func ExecuteElman(mlp *MultiLayerPerceptron, s *Stimulus) (r []float64) {
 
 // BackPropagation algorithm for assisted learning. Convergence is not guaranteed and very slow.
 // Use as a stop criterion the average between previous and current errors and a maximum number of iterations.
-// [mlp:MultiLayerPerceptron] input value		[s:Stimulus] input value (scaled between 0 and 1)
+// [mlp:MultiLayerPerceptron] input value		[s:Pattern] input value (scaled between 0 and 1)
 // [o:[]float64] expected output value (scaled between 0 and 1)
 // return [r:float64] delta error between generated output and expected output
-func BackPropagateElman(mlp *MultiLayerPerceptron, s *Stimulus, o []float64) (r float64) {
+func BackPropagateElman(mlp *MultiLayerPerceptron, s *Pattern, o []float64) (r float64) {
 
-	// executeelman network with stimulus passed over each level to output
+	// executeelman network with pattern passed over each level to output
 	no := ExecuteElman(mlp, s)
 
 	// init error
@@ -172,7 +172,7 @@ func BackPropagateElman(mlp *MultiLayerPerceptron, s *Stimulus, o []float64) (r 
 	// compute output error and delta in output layer
 	for i := 0; i < mlp.Layers[len(mlp.Layers)-1].Length; i++ {
 
-		// compute error in output: output for given stimulus - output computed by network
+		// compute error in output: output for given pattern - output computed by network
 		e = o[i] - no[i]
 
 		// compute delta for each neuron in output layer as:
@@ -252,33 +252,33 @@ func BackPropagateElman(mlp *MultiLayerPerceptron, s *Stimulus, o []float64) (r 
 }
 
 // RNNTrain train a mlp MultiLayerPerceptron with BackPropagation algorithm for assisted learning.
-func RNNTrain(mlp *MultiLayerPerceptron, stimuli []Stimulus, mapped []string, epochs int) {
+func RNNTrain(mlp *MultiLayerPerceptron, patterns []Pattern, epochs int) {
 
 	epoch := 0
-	output := make([]float64, len(mapped))
+	output := make([]float64, len(patterns[0].Dimensions))
 
 	// for fixed number of epochs
 	for {
 
-		// for each stimulus in training set
-		for _, stimulus := range stimuli {
+		// for each pattern in training set
+		for _, pattern := range patterns {
 
 			// setup desired output for each unit
 			for io, _ := range output {
 				output[io] = 0.0
 			}
-			// setup desired output for specific class of stimulus focused
-			output[int(stimulus.Expected)] = 1.0
+			// setup desired output for specific class of pattern focused
+			//output[int(pattern.Expected)] = 1.0
 
 			// log.WithFields(log.Fields{
 			// 	"level":             "info",
 			// 	"place":             "train",
 			// 	"method":            "RNNTrain",
-			// 	"stimulus":        	 stimulus.Dimensions,
+			// 	"pattern":        	 pattern.Dimensions,
 			// }).Info("DEBUG EXT")
 
 			// back propagation
-			BackPropagateElman(mlp, &stimulus, output)
+			BackPropagateElman(mlp, &pattern, pattern.Dimensions)
 
 		}
 

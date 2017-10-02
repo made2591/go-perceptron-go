@@ -3,17 +3,13 @@ package neural
 
 import (
 	// sys import
-	"encoding/csv"
-	"io"
-	"io/ioutil"
 	"os"
-	"strings"
+	"math/rand"
+	"strconv"
 
 	// third part import
 	log "github.com/sirupsen/logrus"
 
-	// this repo internal import
-	mu "github.com/made2591/go-perceptron-go/util"
 )
 
 func init() {
@@ -34,70 +30,40 @@ type Pattern struct {
 // #######################################################################################
 
 // CreaTerandomPattERNArray load a CSV dataset into an array of Pattern.
-func CreaTerandomPattERNArray(int d, int q) ([]Pattern) {
+func CreaTerandomPattERNArray(d int, q int) ([]Pattern) {
 
 	// init patterns
-	var patterns []Pattern
+	var patterns []Pattern;
 
 	var c = 0
 	// for d times
-	for {
+	for c < q {
 
-		n := Int63n(int64(100))
+		n := rand.Int63n(int64(2^d))
 		s := strconv.FormatInt(n, 2)
-		var
-		for ci, cs in range(len(s)) {
-			patterns.Dimensions = s[ci]
+		var floatingValues = make([]float64, d)
+
+		for ci, cs := range(s) {
+			floatingValues[ci], _ = strconv.ParseFloat(string(cs), 64)
 		}
 
 		log.WithFields(log.Fields{
 			"level":  "debug",
 			"place":  "patterns",
 			"method": "CreaTerandomPattERNArray",
-			"line":   line,
+			"c":   c,
 		}).Debug()
-
-		// if end of file reached, exit loop
-		if error == io.EOF {
-			log.WithFields(log.Fields{
-				"level":    "info",
-				"place":    "patterns",
-				"method":   "CreaTerandomPattERNArray",
-				"readData": len(patterns),
-				"msg":      "File reading completed.",
-			}).Info("File reading completed.")
-			break
-		}
-
-		// if another error encountered, exit program
-		if error != nil {
-			log.WithFields(log.Fields{
-				"level":       "error",
-				"place":       "patterns",
-				"method":      "CreaTerandomPattERNArray",
-				"msg":         "parsing file in specific line number",
-				"lineCounter": lineCounter,
-				"error":       error,
-			}).Error("Failed to parse line.")
-			return patterns, error, nil
-		}
-
-		// line values cast to float64
-		var floatingValues []float64 = mu.StringToFloat(line, 1, -1.0)
 
 		// add casted pattern to training set
 		patterns = append(
 			patterns,
 			Pattern{Dimensions: floatingValues})
 
-		lineCounter = lineCounter + 1
+		c = c + 1
 
 	}
 
-	// cast expected values to float64 numeric values
-	mapped := RawExpectedConversion(patterns)
-
 	// return patterns
-	return patterns, nil, mapped
+	return patterns
 
 }

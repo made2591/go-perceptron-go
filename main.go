@@ -148,7 +148,7 @@ func main() {
 		}).Info("Compute training algorithm on elman network using iris data set (binary classification problem)")
 
 		// percentage and shuffling in dataset
-		var filePath = ".\\res\\iris.all_data.csv"
+		//var filePath = ".\\res\\iris.all_data.csv"
 		//var filePath = "./res/sonar.all_data.csv"
 
 		// single layer neuron parameters
@@ -160,8 +160,8 @@ func main() {
 		var epochs = 500
 		var folds  = 3
 
-		// Stimuli initialization
-		var stimuli, _ , mapped = mn.LoadStimuliFromCSVFile(filePath)
+		// Patterns initialization
+		var patterns = mn.CreaTerandomPattERNArray(8, 30)
 
 		//input  layer : 4 neuron, represents the feature of Iris, more in general dimensions of stimulus
 		//hidden layer : 3 neuron, activation using sigmoid, number of neuron in hidden level
@@ -169,14 +169,14 @@ func main() {
 		//output layer : 3 neuron, represents the class of Iris, more in general dimensions of mapped values
 
 		//Multilayer perceptron model, with one hidden layer.
-		var mlp mn.MultiLayerPerceptron = mn.PrepareRNNNet(len(stimuli[0].Dimensions)+3, 3, len(mapped), learningRate, mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
+		var mlp mn.MultiLayerPerceptron = mn.PrepareRNNNet(len(patterns[0].Dimensions)+10, 10, len(patterns[0].Dimensions), learningRate, mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
 
 		// compute scores for each folds execution
-		var scores = v.RNNKFoldValidation(&mlp, stimuli, epochs, folds, shuffle, mapped)
+		var scores = v.RNNKFoldValidation(&mlp, patterns, epochs, folds, shuffle)
 
 		// use simpler validation
-		var mlp2 mn.MultiLayerPerceptron = mn.PrepareRNNNet(len(stimuli[0].Dimensions)+20, 20, len(mapped), learningRate, mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
-		var scores2 = v.RNNRandomSubsamplingValidation(&mlp2, stimuli, percentage, epochs, folds, shuffle, mapped)
+		var mlp2 mn.MultiLayerPerceptron = mn.PrepareRNNNet(len(patterns[0].Dimensions)+20, 20, len(patterns[0].Dimensions), learningRate, mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
+		var scores2 = v.RNNRandomSubsamplingValidation(&mlp2, patterns, percentage, epochs, folds, shuffle)
 
 		log.WithFields(log.Fields{
 			"level":  "info",
