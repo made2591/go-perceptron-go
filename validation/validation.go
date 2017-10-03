@@ -485,45 +485,34 @@ func MLPKFoldValidation(mlp *mn.MultiLayerPerceptron, stimuli []mn.Stimulus, epo
 
 }
 
-
-// It returns scores reached for each fold iteration.
-func RNNRandomSubsamplingValidation(mlp *mn.MultiLayerPerceptron, patterns []mn.Pattern, percentage float64, epochs int, folds int, shuffle int) []float64 {
+// RNNValidation perform evaluation on neuron algorithm.
+func RNNValidation(mlp *mn.MultiLayerPerceptron, patterns []mn.Pattern, epochs int, shuffle int) (float64, []float64) {
 
 	// results and predictions vars init
 	var scores []float64
-	var train, test []mn.Pattern
+	scores = make([]float64, len(patterns))
 
-	scores = make([]float64, folds)
+	// train mlp with set of patterns, for specified number of epochs
+	mn.RNNTrain(mlp, patterns, epochs)
+	p_cor := 0.0
 
-	for t := 0; t < folds; t++ {
-		// split the dataset with shuffling
-		train, test = TrainTestPatternSplit(patterns, percentage, shuffle)
-
-		// train mlp with set of patterns, for specified number of epochs
-		mn.RNNTrain(mlp, patterns, epochs)
-		p_cor, accur := 0.0, 0.0
-
-		// compute predictions for each pattern in testing set
-		for _, pattern := range test {
-			// get output from network
-			o_out := mn.ExecuteElman(mlp, &pattern)
-			// add to predicted values
-			_, p_cor = mn.Accuracy(pattern.Dimensions, o_out)
-			accur = accur + p_cor
+	// compute predictions for each pattern in testing set
+	for p_i, pattern := range patterns {
+		// get output from network
+		o_out := mn.ExecuteElman(mlp, &pattern)
+		for o_out_i, o_out_v := range(o_out) {
+			o_out[o_out_i] = mu.Round(o_out_v, .5, 0)
 		}
-
-		// compute score
-		scores[t] = accur / float64(len(test))
-
 		log.WithFields(log.Fields{
-			"level":             "info",
-			"place":             "validation",
-			"method":            "RNNRandomSubsamplingValidation",
-			"foldNumber":        t,
-			"trainSetLen":       len(train),
-			"testSetLen":        len(test),
-			"percentageCorrect": scores[t],
-		}).Info("Evaluation completed for current fold.")
+			"a_p_b":	pattern.Dimensions,
+			"rea_c":	pattern.Expected,
+			"pre_c":	o_out,
+		}).Debug()
+
+		// add to predicted values
+		_, p_cor = mn.Accuracy(pattern.Expected, o_out)
+		// compute score
+		scores[p_i] = p_cor;
 	}
 
 	// compute average score
@@ -537,86 +526,12 @@ func RNNRandomSubsamplingValidation(mlp *mn.MultiLayerPerceptron, patterns []mn.
 	log.WithFields(log.Fields{
 		"level":       "info",
 		"place":       "validation",
-		"method":      "RNNRandomSubsamplingValidation",
-		"folds":       folds,
-		"trainSetLen": len(train),
-		"testSetLen":  len(test),
+		"method":      "RNNValidation",
+		"trainSetLen": len(patterns),
+		"testSetLen":  len(patterns),
 		"meanScore":   mean,
-	}).Info("Evaluation completed for all folds.")
+	}).Info("Evaluation completed for all patterns.")
 
-	return scores
-}
-
-// RandomSubsamplingValidation perform evaluation on neuron algorithm.
-// It returns scores reached for each fold iteration.
-func RNNKFoldValidation(mlp *mn.MultiLayerPerceptron, patterns []mn.Pattern, epochs int, k int, shuffle int) []float64 {
-
-	// results and predictions vars init
-	var scores []float64
-	var train, test []mn.Pattern
-
-	scores = make([]float64, k)
-
-	// split the dataset with shuffling
-	folds := KFoldPatternsSplit(patterns, k, shuffle)
-
-	// the t-th fold is used as test
-	for t := 0; t < k; t++ {
-		// prepare train
-		train = nil
-		for i := 0; i < k; i++ {
-			if i != t {
-				train = append(train, folds[i]...)
-			}
-		}
-		test = folds[t]
-
-		// train mlp with set of patterns, for specified number of epochs
-		mn.RNNTrain(mlp, patterns, epochs)
-
-		p_cor, accur := 0.0, 0.0
-
-		// compute predictions for each pattern in testing set
-		for _, pattern := range test {
-			// get output from network
-			o_out := mn.ExecuteElman(mlp, &pattern)
-			// add to predicted values
-			_, p_cor = mn.Accuracy(pattern.Dimensions, o_out)
-			accur = accur + p_cor
-		}
-
-		// compute score
-		scores[t] = accur / float64(len(test))
-
-		log.WithFields(log.Fields{
-			"level":             "info",
-			"place":             "validation",
-			"method":            "RNNKFoldValidation",
-			"foldNumber":        t,
-			"trainSetLen":       len(train),
-			"testSetLen":        len(test),
-			"percentageCorrect": scores[t],
-		}).Info("Evaluation completed for current fold.")
-	}
-
-	// compute average score
-	acc := 0.0
-	for i := 0; i < len(scores); i++ {
-		acc += scores[i]
-	}
-
-	mean := acc / float64(len(scores))
-
-	log.WithFields(log.Fields{
-		"level":       "info",
-		"place":       "validation",
-		"method":      "RNNKFoldValidation",
-		"folds":       k,
-		"trainSetLen": len(train),
-		"testSetLen":  len(test),
-		"meanScore":   mean,
-	}).Info("Evaluation completed for all folds.")
-
-	return scores
+	return mean, scores
 
 }

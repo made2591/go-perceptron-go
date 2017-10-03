@@ -10,7 +10,7 @@ import (
 
 	// this repo internal import
 	mn "github.com/made2591/go-perceptron-go/model/neural"
-
+	//mu "github.com/made2591/go-perceptron-go/util"
 	v "github.com/made2591/go-perceptron-go/validation"
 )
 
@@ -153,12 +153,10 @@ func main() {
 
 		// single layer neuron parameters
 		var learningRate = 0.01
-		var percentage = 0.67
 		var shuffle = 1
 
 		// training parameters
 		var epochs = 500
-		var folds  = 3
 
 		// Patterns initialization
 		var patterns = mn.CreaTerandomPattERNArray(8, 30)
@@ -169,26 +167,19 @@ func main() {
 		//output layer : 3 neuron, represents the class of Iris, more in general dimensions of mapped values
 
 		//Multilayer perceptron model, with one hidden layer.
-		var mlp mn.MultiLayerPerceptron = mn.PrepareRNNNet(len(patterns[0].Dimensions)+10, 10, len(patterns[0].Dimensions), learningRate, mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
+		var mlp mn.MultiLayerPerceptron = 
+				mn.PrepareRNNNet(len(patterns[0].Dimensions)+10, 
+				10, len(patterns[0].Expected), learningRate, 
+				mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
 
 		// compute scores for each folds execution
-		var scores = v.RNNKFoldValidation(&mlp, patterns, epochs, folds, shuffle)
-
-		// use simpler validation
-		var mlp2 mn.MultiLayerPerceptron = mn.PrepareRNNNet(len(patterns[0].Dimensions)+20, 20, len(patterns[0].Dimensions), learningRate, mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
-		var scores2 = v.RNNRandomSubsamplingValidation(&mlp2, patterns, percentage, epochs, folds, shuffle)
+		var mean, _ = v.RNNValidation(&mlp, patterns, epochs, shuffle)
 
 		log.WithFields(log.Fields{
 			"level":  "info",
 			"place":  "main",
-			"scores": scores,
-		}).Info("Scores reached: ", scores)
-
-		log.WithFields(log.Fields{
-			"level":  "info",
-			"place":  "main",
-			"scores": scores2,
-		}).Info("Scores reached: ", scores2)
+			"precision": mean,
+		}).Info("Scores reached: ", mean)
 
 	}
 

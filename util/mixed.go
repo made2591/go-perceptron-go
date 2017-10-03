@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 	"strconv"
+	"math"
 	"math/rand"
 
 	// github import
@@ -128,4 +129,68 @@ func MaxInSlice(v []float64) (float64, int) {
 		}
 	}
 	return mv, mi
+}
+
+func GenerateRandomIntWithBinaryDim(d int) int64 {
+
+	rand.Seed(time.Now().UTC().UnixNano())
+	return rand.Int63n(int64(2^d))
+
+}
+
+func GenerateRandomBinaryInt(d int) []float64 {
+
+	rand.Seed(time.Now().UTC().UnixNano())
+	bn := rand.Int63n(int64(2^d))
+	bi := make([]float64, d)
+	bs := strconv.FormatInt(bn, 2)
+	zn := d-len(bs)
+	for z_index := 0; z_index < d; z_index++ {
+		if z_index < zn {
+			bi[z_index] = 0.0
+		} else {
+			bi[z_index], _ = strconv.ParseFloat(string(bs[z_index-zn]), 64)
+		}
+	}
+	// log.Debug(bn)
+	// log.Debug(bi)
+	// log.Debug(bs)
+	// log.Debug(zn)
+	return bi
+
+}
+
+func ConvertIntToBinary(n int64, d int) []float64 {
+
+	bs := strconv.FormatInt(n, 2)
+	bi := make([]float64, d)
+	zn := d-len(bs)
+	if zn < 0 {
+		log.Warning("Too small base")
+		bi = make([]float64, len(bs))
+		zn = 0
+	}
+	for z_index := 0; z_index < d; z_index++ {
+		if z_index < zn {
+			bi[z_index] = 0.0
+		} else {
+			bi[z_index], _ = strconv.ParseFloat(string(bs[z_index-zn]), 64)
+		}
+	}
+	return bi
+
+}
+
+func Round(val float64, roundOn float64, places int ) (newVal float64) {
+	var round float64
+	pow := math.Pow(10, float64(places))
+	digit := pow * val
+	_, div := math.Modf(digit)
+	if div >= roundOn {
+		round = math.Ceil(digit)
+	} else {
+		round = math.Floor(digit)
+	}
+	newVal = round / pow
+	return
 }

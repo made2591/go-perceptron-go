@@ -12,7 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	// this repo internal import
-	//mu "github.com/made2591/go-perceptron-go/util"
+	mu "github.com/made2591/go-perceptron-go/util"
 
 )
 
@@ -255,7 +255,7 @@ func BackPropagateElman(mlp *MultiLayerPerceptron, s *Pattern, o []float64) (r f
 func RNNTrain(mlp *MultiLayerPerceptron, patterns []Pattern, epochs int) {
 
 	epoch := 0
-	output := make([]float64, len(patterns[0].Dimensions))
+	output := make([]float64, len(patterns[0].Expected))
 
 	// for fixed number of epochs
 	for {
@@ -265,7 +265,7 @@ func RNNTrain(mlp *MultiLayerPerceptron, patterns []Pattern, epochs int) {
 
 			// setup desired output for each unit
 			for io, _ := range output {
-				output[io] = 0.0
+				output[io] = pattern.Expected[io]
 			}
 			// setup desired output for specific class of pattern focused
 			//output[int(pattern.Expected)] = 1.0
@@ -278,7 +278,26 @@ func RNNTrain(mlp *MultiLayerPerceptron, patterns []Pattern, epochs int) {
 			// }).Info("DEBUG EXT")
 
 			// back propagation
-			BackPropagateElman(mlp, &pattern, pattern.Dimensions)
+			BackPropagateElman(mlp, &pattern, pattern.Expected)
+
+			if (epoch % 100 == 0) {
+
+				// get output from network
+				o_out := ExecuteElman(mlp, &pattern)
+				for o_out_i, o_out_v := range(o_out) {
+					o_out[o_out_i] = mu.Round(o_out_v, .5, 0)
+				}
+				log.WithFields(log.Fields{
+					"a_p_b":	pattern.Dimensions,
+				}).Info()
+				log.WithFields(log.Fields{
+					"rea_c":	pattern.Expected,
+				}).Info()
+				log.WithFields(log.Fields{
+					"pre_c":	o_out,
+				}).Info()
+
+			}
 
 		}
 

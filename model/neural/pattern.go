@@ -4,11 +4,12 @@ package neural
 import (
 	// sys import
 	"os"
-	"math/rand"
-	"strconv"
+	// "math/rand"
+	// "strconv"
 
 	// third part import
 	log "github.com/sirupsen/logrus"
+	mu "github.com/made2591/go-perceptron-go/util"
 
 )
 
@@ -25,41 +26,48 @@ type Pattern struct {
 	// Features that describe the pattern
 	Dimensions []float64
 
+	Expected []float64
+
 }
 
 // #######################################################################################
 
 // CreaTerandomPattERNArray load a CSV dataset into an array of Pattern.
-func CreaTerandomPattERNArray(d int, q int) ([]Pattern) {
+func CreaTerandomPattERNArray(d int, k int) ([]Pattern) {
 
 	// init patterns
 	var patterns []Pattern;
 
-	var c = 0
-	// for d times
-	for c < q {
+	// for i times
+	var i = 0
+	for i < k {
 
-		n := rand.Int63n(int64(2^d))
-		s := strconv.FormatInt(n, 2)
-		var floatingValues = make([]float64, d)
-
-		for ci, cs := range(s) {
-			floatingValues[ci], _ = strconv.ParseFloat(string(cs), 64)
-		}
+		a := mu.GenerateRandomIntWithBinaryDim(d)
+		b := mu.GenerateRandomIntWithBinaryDim(d)
+		c := a+b
 
 		log.WithFields(log.Fields{
-			"level":  "debug",
-			"place":  "patterns",
-			"method": "CreaTerandomPattERNArray",
-			"c":   c,
+			"ai":	a,
+			"as":	mu.ConvertIntToBinary(a, d),
+			"bi":	b,
+			"bs":	mu.ConvertIntToBinary(b, d),
+			"ci":	c,
+			"cs":	mu.ConvertIntToBinary(c, d+1),
 		}).Debug()
+
+		ab := mu.ConvertIntToBinary(a, d)
+		bb := mu.ConvertIntToBinary(b, d)
+		for _, v := range(bb) {
+			ab = append(ab, v)
+		}
 
 		// add casted pattern to training set
 		patterns = append(
 			patterns,
-			Pattern{Dimensions: floatingValues})
+			Pattern{Dimensions: ab, 
+					Expected: 	mu.ConvertIntToBinary(c, d)})
 
-		c = c + 1
+		i = i + 1
 
 	}
 
