@@ -10,7 +10,7 @@ import (
 
 	// this repo internal import
 	mn "github.com/made2591/go-perceptron-go/model/neural"
-	//mu "github.com/made2591/go-perceptron-go/util"
+	mu "github.com/made2591/go-perceptron-go/util"
 	v "github.com/made2591/go-perceptron-go/validation"
 )
 
@@ -161,6 +161,11 @@ func main() {
 		// Patterns initialization
 		var patterns = mn.CreaTerandomPattERNArray(8, 30)
 
+		//log.Info(patterns[0].Dimensions[:int(len(patterns[0].Dimensions)/2)])
+		//n := mu.ConvertBinToInt(patterns[0].Dimensions[:int(len(patterns[0].Dimensions)/2)])
+		//log.Info(n)
+		//os.Exit(1)
+
 		//input  layer : 4 neuron, represents the feature of Iris, more in general dimensions of stimulus
 		//hidden layer : 3 neuron, activation using sigmoid, number of neuron in hidden level
 		// 2° hidden l : * neuron, insert number of level you want
@@ -178,8 +183,8 @@ func main() {
 		log.WithFields(log.Fields{
 			"level":  "info",
 			"place":  "main",
-			"precision": mean,
-		}).Info("Scores reached: ", mean)
+			"precision": mu.Round(mean, .5, 2),
+		}).Info("Scores reached: ", mu.Round(mean, .5, 2))
 
 	}
 

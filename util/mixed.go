@@ -181,6 +181,18 @@ func ConvertIntToBinary(n int64, d int) []float64 {
 
 }
 
+func ConvertBinToInt(n []float64) int {
+
+	bi := 0
+	for i := len(n)-1; i >= 0; i-- {
+//		log.Info(int(n[i]), " * ", 2, "^", ((len(n)-i)-1), "=", (int(n[i])*int(math.Pow(float64(2), float64(len(n)-i-1)))))
+		bi = bi + (int(n[i])*int(math.Pow(float64(2), float64(len(n)-i-1))))
+	}
+//	log.Info(n, " = ", bi)
+	return bi
+
+}
+
 func Round(val float64, roundOn float64, places int ) (newVal float64) {
 	var round float64
 	pow := math.Pow(10, float64(places))

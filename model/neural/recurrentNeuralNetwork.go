@@ -5,8 +5,10 @@ import (
 
 	// sys import
 	"os"
+	"time"
 	//"fmt"
 	"math"
+	"math/rand"
 
 	// third part import
 	log "github.com/sirupsen/logrus"
@@ -255,32 +257,20 @@ func BackPropagateElman(mlp *MultiLayerPerceptron, s *Pattern, o []float64) (r f
 func RNNTrain(mlp *MultiLayerPerceptron, patterns []Pattern, epochs int) {
 
 	epoch := 0
-	output := make([]float64, len(patterns[0].Expected))
 
 	// for fixed number of epochs
 	for {
 
+		rand.Seed(time.Now().UTC().UnixNano())
+		p_i_r := rand.Intn(len(patterns))
+
 		// for each pattern in training set
-		for _, pattern := range patterns {
-
-			// setup desired output for each unit
-			for io, _ := range output {
-				output[io] = pattern.Expected[io]
-			}
-			// setup desired output for specific class of pattern focused
-			//output[int(pattern.Expected)] = 1.0
-
-			// log.WithFields(log.Fields{
-			// 	"level":             "info",
-			// 	"place":             "train",
-			// 	"method":            "RNNTrain",
-			// 	"pattern":        	 pattern.Dimensions,
-			// }).Info("DEBUG EXT")
+		for p_i, pattern := range patterns {
 
 			// back propagation
 			BackPropagateElman(mlp, &pattern, pattern.Expected)
 
-			if (epoch % 100 == 0) {
+			if (epoch % 100 == 0 && p_i == p_i_r) {
 
 				// get output from network
 				o_out := ExecuteElman(mlp, &pattern)
@@ -288,13 +278,26 @@ func RNNTrain(mlp *MultiLayerPerceptron, patterns []Pattern, epochs int) {
 					o_out[o_out_i] = mu.Round(o_out_v, .5, 0)
 				}
 				log.WithFields(log.Fields{
-					"a_p_b":	pattern.Dimensions,
+					"SUM":	"  ==========================",
 				}).Info()
 				log.WithFields(log.Fields{
-					"rea_c":	pattern.Expected,
+					"a_n_1":	mu.ConvertBinToInt(pattern.Dimensions[0:int(len(pattern.Dimensions)/2)]),
+					"a_n_2":	pattern.Dimensions[0:int(len(pattern.Dimensions)/2)],
 				}).Info()
 				log.WithFields(log.Fields{
-					"pre_c":	o_out,
+					"b_n_1":	mu.ConvertBinToInt(pattern.Dimensions[int(len(pattern.Dimensions)/2):]),
+					"b_n_2":	pattern.Dimensions[int(len(pattern.Dimensions)/2):],
+				}).Info()
+				log.WithFields(log.Fields{
+					"sum_1":	mu.ConvertBinToInt(pattern.Expected),
+					"sum_2":	pattern.Expected,
+				}).Info()
+				log.WithFields(log.Fields{
+					"sum_1":	mu.ConvertBinToInt(o_out),
+					"sum_2":	o_out,
+				}).Info()
+				log.WithFields(log.Fields{
+					"END":	"  ==========================",
 				}).Info()
 
 			}

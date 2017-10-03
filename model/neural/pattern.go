@@ -65,7 +65,7 @@ func CreaTerandomPattERNArray(d int, k int) ([]Pattern) {
 		patterns = append(
 			patterns,
 			Pattern{Dimensions: ab, 
-					Expected: 	mu.ConvertIntToBinary(c, d)})
+					Expected: 	mu.ConvertIntToBinary(c, d+1)})
 
 		i = i + 1
 
