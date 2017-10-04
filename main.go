@@ -29,7 +29,7 @@ func main() {
 	// ######################################  Single layer perceptron model  ######################################
 	// #############################################################################################################
 
-	if false {
+	if true {
 
 		log.WithFields(log.Fields{
 			"level":  "info",
@@ -50,18 +50,18 @@ func main() {
 		var epochs int = 500
 		var folds int = 5
 
-		// Stimuli initialization
-		var stimuli, _, _ = mn.LoadStimuliFromCSVFile(filePath)
+		// Patterns initialization
+		var patterns, _, _ = mn.LoadPatternsFromCSVFile(filePath)
 
-		// Neuron initialization
-		var neuron mn.Neuron = mn.Neuron{Weights: make([]float64, len(stimuli[0].Dimensions)), Bias: bias, Lrate: learningRate}
+		// NeuronUnit initialization
+		var neuron mn.NeuronUnit = mn.NeuronUnit{Weights: make([]float64, len(patterns[0].Features)), Bias: bias, Lrate: learningRate}
 
 		// compute scores for each folds execution
-		var scores []float64 = v.KFoldValidation(&neuron, stimuli, epochs, folds, shuffle)
+		var scores []float64 = v.KFoldValidation(&neuron, patterns, epochs, folds, shuffle)
 
 		// use simpler validation
-		var neuron2 mn.Neuron = mn.Neuron{Weights: make([]float64, len(stimuli[0].Dimensions)), Bias: bias, Lrate: learningRate}
-		var scores2 []float64 = v.RandomSubsamplingValidation(&neuron2, stimuli, percentage, epochs, folds, shuffle)
+		var neuron2 mn.NeuronUnit = mn.NeuronUnit{Weights: make([]float64, len(patterns[0].Features)), Bias: bias, Lrate: learningRate}
+		var scores2 []float64 = v.RandomSubsamplingValidation(&neuron2, patterns, percentage, epochs, folds, shuffle)
 
 		log.WithFields(log.Fields{
 			"level":  "info",
@@ -102,24 +102,24 @@ func main() {
 		var epochs = 500
 		var folds  = 3
 
-		// Stimuli initialization
-		var stimuli, _ , mapped = mn.LoadStimuliFromCSVFile(filePath)
+		// Patterns initialization
+		var patterns, _ , mapped = mn.LoadPatternsFromCSVFile(filePath)
 
-		//input  layer : 4 neuron, represents the feature of Iris, more in general dimensions of stimulus
+		//input  layer : 4 neuron, represents the feature of Iris, more in general dimensions of pattern
 		//hidden layer : 3 neuron, activation using sigmoid, number of neuron in hidden level
 		// 2° hidden l : * neuron, insert number of level you want
 		//output layer : 3 neuron, represents the class of Iris, more in general dimensions of mapped values
-		var layers []int = []int{len(stimuli[0].Dimensions), 20, len(mapped)}
+		var layers []int = []int{len(patterns[0].Features), 20, len(mapped)}
 
 		//Multilayer perceptron model, with one hidden layer.
-		var mlp mn.MultiLayerPerceptron = mn.PrepareMLPNet(layers, learningRate, mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
+		var mlp mn.MultiLayerNetwork = mn.PrepareMLPNet(layers, learningRate, mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
 
 		// compute scores for each folds execution
-		var scores = v.MLPKFoldValidation(&mlp, stimuli, epochs, folds, shuffle, mapped)
+		var scores = v.MLPKFoldValidation(&mlp, patterns, epochs, folds, shuffle, mapped)
 
 		// use simpler validation
-		var mlp2 mn.MultiLayerPerceptron = mn.PrepareMLPNet(layers, learningRate, mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
-		var scores2 = v.MLPRandomSubsamplingValidation(&mlp2, stimuli, percentage, epochs, folds, shuffle, mapped)
+		var mlp2 mn.MultiLayerNetwork = mn.PrepareMLPNet(layers, learningRate, mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
+		var scores2 = v.MLPRandomSubsamplingValidation(&mlp2, patterns, percentage, epochs, folds, shuffle, mapped)
 
 		log.WithFields(log.Fields{
 			"level":  "info",
@@ -159,22 +159,22 @@ func main() {
 		var epochs = 500
 
 		// Patterns initialization
-		var patterns = mn.CreaTerandomPattERNArray(8, 30)
+		var patterns = mn.CreateRandomPatternArray(8, 30)
 
-		//log.Info(patterns[0].Dimensions[:int(len(patterns[0].Dimensions)/2)])
-		//n := mu.ConvertBinToInt(patterns[0].Dimensions[:int(len(patterns[0].Dimensions)/2)])
+		//log.Info(patterns[0].Features[:int(len(patterns[0].Features)/2)])
+		//n := mu.ConvertBinToInt(patterns[0].Features[:int(len(patterns[0].Features)/2)])
 		//log.Info(n)
 		//os.Exit(1)
 
-		//input  layer : 4 neuron, represents the feature of Iris, more in general dimensions of stimulus
+		//input  layer : 4 neuron, represents the feature of Iris, more in general dimensions of pattern
 		//hidden layer : 3 neuron, activation using sigmoid, number of neuron in hidden level
 		// 2° hidden l : * neuron, insert number of level you want
 		//output layer : 3 neuron, represents the class of Iris, more in general dimensions of mapped values
 
 		//Multilayer perceptron model, with one hidden layer.
-		var mlp mn.MultiLayerPerceptron = 
-				mn.PrepareRNNNet(len(patterns[0].Dimensions)+10, 
-				10, len(patterns[0].Expected), learningRate, 
+		var mlp mn.MultiLayerNetwork =
+				mn.PrepareElmanNet(len(patterns[0].Features)+10,
+				10, len(patterns[0].MultipleExpectation), learningRate,
 				mn.SigmoidalTransfer, mn.SigmoidalTransferDerivate)
 
 		// compute scores for each folds execution

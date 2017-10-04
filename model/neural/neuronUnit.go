@@ -20,17 +20,17 @@ const (
 
 )
 
-// Neuron struct represents a simple Neuron network with a slice of n weights.
-type Neuron struct {
+// NeuronUnit struct represents a simple NeuronUnit network with a slice of n weights.
+type NeuronUnit struct {
 
-	// Weights represents Neuron vector representation
+	// Weights represents NeuronUnit vector representation
 	Weights []float64
-	// Bias represents Neuron natural propensity to spread signal
+	// Bias represents NeuronUnit natural propensity to spread signal
 	Bias float64
 	// Lrate represents learning rate of neuron
 	Lrate float64
 
-	// Value represents desired value when loading input into network in Multi Layer Perceptron
+	// Value represents desired value when loading input into network in Multi NeuralLayer Perceptron
 	Value float64
 	// Delta represents delta error for unit
 	Delta float64
@@ -47,7 +47,7 @@ func init() {
 }
 
 // RandomNeuronInit initialize neuron weight, bias and learning rate using NormFloat64 random value.
-func RandomNeuronInit(neuron *Neuron, dim int) {
+func RandomNeuronInit(neuron *NeuronUnit, dim int) {
 
 	neuron.Weights = make([]float64, dim)
 
@@ -73,25 +73,25 @@ func RandomNeuronInit(neuron *Neuron, dim int) {
 
 }
 
-// UpdateWeights performs update in neuron weights with respect to passed stimulus.
+// UpdateWeights performs update in neuron weights with respect to passed pattern.
 // It returns error of prediction before and after updating weights.
-func UpdateWeights(neuron *Neuron, stimulus *Stimulus) (float64, float64) {
+func UpdateWeights(neuron *NeuronUnit, pattern *Pattern) (float64, float64) {
 
-	// compute prediction value and error for stimulus given neuron BEFORE update (actual state)
-	var predictedValue, prevError, postError float64 = Predict(neuron, stimulus), 0.0, 0.0
-	prevError = stimulus.Expected - predictedValue
+	// compute prediction value and error for pattern given neuron BEFORE update (actual state)
+	var predictedValue, prevError, postError float64 = Predict(neuron, pattern), 0.0, 0.0
+	prevError = pattern.SingleExpectation - predictedValue
 
 	// performs weights update for neuron
 	neuron.Bias = neuron.Bias + neuron.Lrate*prevError
 
 	// performs weights update for neuron
 	for index, _ := range neuron.Weights {
-		neuron.Weights[index] = neuron.Weights[index] + neuron.Lrate*prevError*stimulus.Dimensions[index]
+		neuron.Weights[index] = neuron.Weights[index] + neuron.Lrate*prevError*pattern.Features[index]
 	}
 
-	// compute prediction value and error for stimulus given neuron AFTER update (actual state)
-	predictedValue = Predict(neuron, stimulus)
-	postError = stimulus.Expected - predictedValue
+	// compute prediction value and error for pattern given neuron AFTER update (actual state)
+	predictedValue = Predict(neuron, pattern)
+	postError = pattern.SingleExpectation - predictedValue
 
 	log.WithFields(log.Fields{
 		"level":   "debug",
@@ -106,14 +106,14 @@ func UpdateWeights(neuron *Neuron, stimulus *Stimulus) (float64, float64) {
 
 }
 
-// TrainNeuron trains a passed neuron with stimuli passed, for specified number of epoch.
+// TrainNeuron trains a passed neuron with patterns passed, for specified number of epoch.
 // If init is 0, leaves weights unchanged before training.
 // If init is 1, reset weights and bias of neuron before training.
-func TrainNeuron(neuron *Neuron, stimuli []Stimulus, epochs int, init int) {
+func TrainNeuron(neuron *NeuronUnit, patterns []Pattern, epochs int, init int) {
 
 	// init weights if specified
 	if init == 1 {
-		neuron.Weights = make([]float64, len(stimuli[0].Dimensions))
+		neuron.Weights = make([]float64, len(patterns[0].Features))
 		neuron.Bias = 0.0
 	}
 
@@ -126,9 +126,9 @@ func TrainNeuron(neuron *Neuron, stimuli []Stimulus, epochs int, init int) {
 	// in each epoch
 	for epoch < epochs {
 
-		// update weight using each stimulus in training set
-		for _, stimulus := range stimuli {
-			prevError, postError := UpdateWeights(neuron, &stimulus)
+		// update weight using each pattern in training set
+		for _, pattern := range patterns {
+			prevError, postError := UpdateWeights(neuron, &pattern)
 			// NOTE: in each step, use weights already updated by previous
 			squaredPrevError = squaredPrevError + (prevError * prevError)
 			squaredPostError = squaredPostError + (postError * postError)
@@ -151,11 +151,11 @@ func TrainNeuron(neuron *Neuron, stimuli []Stimulus, epochs int, init int) {
 
 }
 
-// Predict performs a neuron prediction to passed stimulus.
+// Predict performs a neuron prediction to passed pattern.
 // It returns a float64 binary predicted value.
-func Predict(neuron *Neuron, stimulus *Stimulus) float64 {
+func Predict(neuron *NeuronUnit, pattern *Pattern) float64 {
 
-	if mu.ScalarProduct(neuron.Weights, stimulus.Dimensions)+neuron.Bias < 0.0 {
+	if mu.ScalarProduct(neuron.Weights, pattern.Features)+neuron.Bias < 0.0 {
 		return 0.0
 	}
 	return 1.0

@@ -10,6 +10,8 @@ The implementation is in dev. Planned features:
 
 ### Updates
 
+2017-10-04: Introduced Recurrent Neural Network (Elman Network) with "learn to sum integer" task. Big refactoring in code (working on)
+
 2017-08-08: Introduced multi layer perceptron network definition with parametric number of hidden layer and neurons. Back propagation algorithm with different transfer function actived - I wanna thank you [dakk](https://github.com/dakk) because I was truly inspired by your code.
 
 2017-08-01: Introduced validation package and k-fold cross validation.
@@ -35,7 +37,7 @@ go run main.go
 
 You can setup a MultiLayerPerceptron using ```PrepareMLPNet```. The first parameter, a simple ```[]int```, define the entire network struct. Example:
 
-- [4, 3, 3] will define a network struct with 3 layer: input, hidden, output, with respectively 4, 3 and 3 neurons. For classification problems the input layers has to be define with a number of neurons that match features of stimulus shown to network. Of course, the output layer should have a number of unit equals to the number of class in training set.
+- [4, 3, 3] will define a network struct with 3 layer: input, hidden, output, with respectively 4, 3 and 3 neurons. For classification problems the input layers has to be define with a number of neurons that match features of pattern shown to network. Of course, the output layer should have a number of unit equals to the number of class in training set.
 The network will have this topology:
 
 ![](./media/first_example.png)
