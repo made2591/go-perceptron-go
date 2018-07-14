@@ -31,7 +31,7 @@ To run a simple test just open a shell and run the following:
 ```
 git clone https://github.com/made2591/go-perceptron-go
 cd go-perceptron-go
-go get https://github.com/sirupsen/logrus
+go get github.com/sirupsen/logrus
 go run main.go
 ```
 
